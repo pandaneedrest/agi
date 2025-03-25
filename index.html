@@ -6,7 +6,7 @@
         body {
             margin: 0;
             height: 100vh;
-            background: #000000;
+            background: #000814; /* 太空深蓝 */
             overflow: hidden;
             font-family: "楷体", Kaiti, serif;
         }
@@ -20,9 +20,9 @@
 
         .matrix-char {
             position: absolute;
-            color: rgba(0, 116, 217, 0.15); /* 霓虹蓝 */
+            color: rgba(0, 163, 255, 0.2); /* 量子蓝 */
             font-size: 14px;
-            text-shadow: 0 0 5px rgba(0, 116, 217, 0.3);
+            text-shadow: 0 0 8px rgba(0, 163, 255, 0.3);
             animation: float 20s infinite linear;
             opacity: 0;
             transform: translateY(100vh);
@@ -30,11 +30,12 @@
 
         @keyframes float {
             0% { 
-                opacity: 0.8;
+                opacity: 0.9;
                 transform: translateY(100vh) rotate(0deg); 
             }
-            80% {
-                opacity: 0.5;
+            50% {
+                opacity: 0.6;
+                filter: brightness(1.2);
             }
             100% { 
                 opacity: 0;
@@ -57,24 +58,24 @@
 
         #countdown span {
             padding: 0 15px;
-            background: linear-gradient(45deg, #0074D9, #001f3f); /* 霓虹到午夜蓝渐变 */
+            background: linear-gradient(135deg, #00a3ff, #0066cc); /* 量子蓝到深蓝渐变 */
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            border-bottom: 2px solid #0074D9;
-            text-shadow: 0 0 15px rgba(0, 116, 217, 0.3);
+            border-bottom: 2px solid #00a3ff;
+            text-shadow: 0 0 20px rgba(0, 163, 255, 0.4);
         }
 
         .portal-btn {
             width: 80px;
             height: 80px;
-            background: rgba(0, 31, 63, 0.3); /* 午夜蓝 */
-            border: 3px solid #0074D9;
+            background: rgba(0, 40, 80, 0.3);
+            border: 3px solid #00a3ff;
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.5s;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             margin: 50px auto;
-            box-shadow: 0 0 30px rgba(0, 116, 217, 0.4);
+            box-shadow: 0 0 40px rgba(0, 163, 255, 0.3);
         }
 
         .portal-btn::before {
@@ -83,16 +84,16 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #0074D9;
+            color: #00a3ff;
             font-size: 24px;
             font-family: "楷体", Kaiti;
-            text-shadow: 0 0 10px #0074D9;
+            text-shadow: 0 0 15px #00a3ff;
         }
 
         .portal-btn:hover {
-            transform: scale(1.1) rotate(180deg);
-            background: rgba(0, 116, 217, 0.3);
-            box-shadow: 0 0 60px rgba(0, 116, 217, 0.8);
+            transform: scale(1.15) rotate(180deg);
+            background: rgba(0, 163, 255, 0.2);
+            box-shadow: 0 0 60px rgba(0, 163, 255, 0.8);
         }
     </style>
 </head>
