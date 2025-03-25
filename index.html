@@ -1,9 +1,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AGI Work Lab</title>
+    <title>DeepSeek AGI倒计时</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: #000;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        #matrix {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .matrix-char {
+            position: absolute;
+            color: rgba(0, 255, 0, 0.3);
+            font-size: 12px;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100vh) rotate(360deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding-top: 20vh;
+        }
+
+        #countdown {
+            font-size: 3em;
+            color: #fff;
+            text-shadow: 0 0 10px #0ff;
+            margin: 20px;
+        }
+
+        #countdown span {
+            padding: 0 10px;
+        }
+
+        .portal-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #0ff;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+        }
+
+        .portal-btn:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px #0ff;
+        }
+
+        .portal-btn::after {
+            content: "➤";
+            color: #0ff;
+            font-size: 24px;
+        }
+    </style>
 </head>
 <body>
-    <h1>你相信AGI吗？</h1>
+    <div id="matrix"></div>
+    
+    <div class="container">
+        <div id="countdown">
+            <span style="color: #ff6666" id="days"></span>天
+            <span style="color: #66ff66" id="hours"></span>时
+            <span style="color: #6666ff" id="minutes"></span>分
+            <span style="color: #ff66ff" id="seconds"></span>秒
+        </div>
+        <button class="portal-btn" onclick="window.open('https://chat.deepseek.com/')"></button>
+    </div>
+
+    <script>
+        // 生成背景字符
+        const chars = ['熵','∞','道','π','∀','∃','⇌','𓀀','𓀁','𓀂','∀','∅','α','β','γ','0','1','∧','∨','∀','∃'];
+        const matrix = document.getElementById('matrix');
+        
+        for(let i=0; i<200; i++) {
+            const char = document.createElement('span');
+            char.className = 'matrix-char';
+            char.textContent = chars[Math.floor(Math.random()*chars.length)];
+            char.style.left = Math.random()*100 + 'vw';
+            char.style.animationDelay = Math.random()*20 + 's';
+            char.style.animationDuration = 10 + Math.random()*20 + 's';
+            matrix.appendChild(char);
+        }
+
+        // 倒计时计算
+        const target = new Date('2028-02-21T01:23:26').getTime();
+        
+        function updateTimer() {
+            const now = new Date().getTime();
+            const diff = target - now;
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = days;
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+            document.getElementById('seconds').textContent = seconds;
+        }
+
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    </script>
 </body>
 </html>
