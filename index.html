@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AGI Work Lab</title>
+    <title>DeepSeek AGI倒计时</title>
     <style>
         body {
             margin: 0;
             height: 100vh;
-            background: #000;
+            background: #0a0c12; /* 深空蓝背景 */
             overflow: hidden;
-            font-family: Arial, sans-serif;
+            font-family: "楷体", Kaiti, serif;
         }
 
         #matrix {
@@ -20,8 +20,8 @@
 
         .matrix-char {
             position: absolute;
-            color: rgba(0, 255, 0, 0.3);
-            font-size: 12px;
+            color: rgba(160, 180, 220, 0.1); /* 星云蓝 */
+            font-size: 14px;
             animation: float 20s infinite linear;
         }
 
@@ -34,62 +34,74 @@
             position: relative;
             z-index: 1;
             text-align: center;
-            padding-top: 20vh;
+            padding-top: 25vh;
         }
 
         #countdown {
-            font-size: 3em;
-            color: #fff;
-            text-shadow: 0 0 10px #0ff;
-            margin: 20px;
+            font-size: 4em;
+            letter-spacing: 3px;
+            margin: 40px 0;
         }
 
         #countdown span {
-            padding: 0 10px;
+            padding: 0 15px;
+            background: linear-gradient(45deg, #e0f4ff, #8cb3ff); /* 冰蓝渐变 */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            border-bottom: 2px solid #4d6b9d; /* 深空蓝 */
         }
 
         .portal-btn {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
+            background: rgba(76, 92, 128, 0.15); /* 宇宙灰 */
+            border: 3px solid #6d8cbf; /* 星环蓝 */
             border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid #0ff;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 30px;
+            transition: all 0.5s;
+            position: relative;
+            margin: 50px auto;
+            box-shadow: 0 0 20px rgba(109, 140, 191, 0.3); /* 星云光晕 */
+        }
+
+        .portal-btn::before {
+            content: "進";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #a6c1ff; /* 银河银 */
+            font-size: 24px;
+            font-family: "楷体", Kaiti;
         }
 
         .portal-btn:hover {
-            transform: scale(1.2);
-            box-shadow: 0 0 20px #0ff;
-        }
-
-        .portal-btn::after {
-            content: "➤";
-            color: #0ff;
-            font-size: 24px;
+            transform: scale(1.1) rotate(180deg);
+            background: rgba(109, 140, 191, 0.25);
+            box-shadow: 0 0 40px rgba(140, 180, 255, 0.6); /* 脉冲星特效 */
         }
     </style>
 </head>
 <body>
+    <!-- 以下结构与脚本保持不变 -->
     <div id="matrix"></div>
     
     <div class="container">
         <div id="countdown">
-            <span style="color: #ff6666" id="days"></span>天
-            <span style="color: #66ff66" id="hours"></span>时
-            <span style="color: #6666ff" id="minutes"></span>分
-            <span style="color: #ff66ff" id="seconds"></span>秒
+            <span id="days"></span>
+            <span id="hours"></span>
+            <span id="minutes"></span>
+            <span id="seconds"></span>
         </div>
         <button class="portal-btn" onclick="window.open('https://chat.deepseek.com/')"></button>
     </div>
 
     <script>
         // 生成背景字符
-        const chars = ['熵','∞','道','π','∀','∃','⇌','𓀀','𓀁','𓀂','∀','∅','α','β','γ','0','1','∧','∨','∀','∃'];
+        const chars = ['道','德','陰','陽','卦','爻','∞','π','∀','∃','⇌','熵','炁','易','乾','坤','震','巽','坎','离','艮','兑','☯','𓀀','𓀁','∀','∅','∧','∨'];
         const matrix = document.getElementById('matrix');
         
-        for(let i=0; i<200; i++) {
+        for(let i=0; i<300; i++) {
             const char = document.createElement('span');
             char.className = 'matrix-char';
             char.textContent = chars[Math.floor(Math.random()*chars.length)];
@@ -111,10 +123,10 @@
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-            document.getElementById('days').textContent = days;
-            document.getElementById('hours').textContent = hours;
-            document.getElementById('minutes').textContent = minutes;
-            document.getElementById('seconds').textContent = seconds;
+            document.getElementById('days').textContent = days + '天';
+            document.getElementById('hours').textContent = hours + '時';
+            document.getElementById('minutes').textContent = minutes + '分';
+            document.getElementById('seconds').textContent = seconds + '秒';
         }
 
         setInterval(updateTimer, 1000);
