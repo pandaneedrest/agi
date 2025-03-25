@@ -6,7 +6,7 @@
         body {
             margin: 0;
             height: 100vh;
-            background: #0a0c12;
+            background: #000000;
             overflow: hidden;
             font-family: "楷体", Kaiti, serif;
         }
@@ -20,34 +20,26 @@
 
         .matrix-char {
             position: absolute;
-            color: rgba(160, 180, 220, 0.1);
+            color: rgba(0, 116, 217, 0.15); /* 霓虹蓝 */
             font-size: 14px;
+            text-shadow: 0 0 5px rgba(0, 116, 217, 0.3);
             animation: float 20s infinite linear;
-            pointer-events: auto;
-            cursor: pointer;
-            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(100vh);
         }
 
         @keyframes float {
-            0% { transform: translateY(100vh) rotate(0deg); }
-            100% { transform: translateY(-100vh) rotate(360deg); }
-        }
-
-        @keyframes burst {
-            0% {
-                transform: scale(1) rotate(0deg);
-                opacity: 1;
+            0% { 
+                opacity: 0.8;
+                transform: translateY(100vh) rotate(0deg); 
             }
-            100% {
-                transform: scale(3) rotate(720deg);
+            80% {
+                opacity: 0.5;
+            }
+            100% { 
                 opacity: 0;
-                filter: blur(2px);
+                transform: translateY(-50vh) rotate(360deg);
             }
-        }
-
-        .matrix-char.burst {
-            animation: burst 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
-            pointer-events: none;
         }
 
         .container {
@@ -65,23 +57,24 @@
 
         #countdown span {
             padding: 0 15px;
-            background: linear-gradient(45deg, #e0f4ff, #8cb3ff);
+            background: linear-gradient(45deg, #0074D9, #001f3f); /* 霓虹到午夜蓝渐变 */
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            border-bottom: 2px solid #4d6b9d;
+            border-bottom: 2px solid #0074D9;
+            text-shadow: 0 0 15px rgba(0, 116, 217, 0.3);
         }
 
         .portal-btn {
             width: 80px;
             height: 80px;
-            background: rgba(76, 92, 128, 0.15);
-            border: 3px solid #6d8cbf;
+            background: rgba(0, 31, 63, 0.3); /* 午夜蓝 */
+            border: 3px solid #0074D9;
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.5s;
             position: relative;
             margin: 50px auto;
-            box-shadow: 0 0 20px rgba(109, 140, 191, 0.3);
+            box-shadow: 0 0 30px rgba(0, 116, 217, 0.4);
         }
 
         .portal-btn::before {
@@ -90,15 +83,16 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #a6c1ff;
+            color: #0074D9;
             font-size: 24px;
             font-family: "楷体", Kaiti;
+            text-shadow: 0 0 10px #0074D9;
         }
 
         .portal-btn:hover {
             transform: scale(1.1) rotate(180deg);
-            background: rgba(109, 140, 191, 0.25);
-            box-shadow: 0 0 40px rgba(140, 180, 255, 0.6);
+            background: rgba(0, 116, 217, 0.3);
+            box-shadow: 0 0 60px rgba(0, 116, 217, 0.8);
         }
     </style>
 </head>
@@ -116,36 +110,20 @@
     </div>
 
     <script>
-        // 生成背景字符
-        const chars = ['0','1','道','德','陰','陽','卦','爻','∞','π','∀','∃','⇌','熵','炁','易','乾','坤','震','巽','坎','离','艮','兑','☯','𓀀','𓀁','∀','∅','∧','∨'];
+        const chars = ['道','德','陰','陽','卦','爻','∞','π','∀','∃','⇌','熵','炁','易','乾','坤','震','巽','坎','离','艮','兑','☯','𓀀','𓀁','∀','∅','∧','∨'];
         const matrix = document.getElementById('matrix');
         
-        function createChar() {
+        for(let i=0; i<200; i++) {
             const char = document.createElement('span');
             char.className = 'matrix-char';
             char.textContent = chars[Math.floor(Math.random()*chars.length)];
             char.style.left = Math.random()*100 + 'vw';
-            char.style.animationDelay = Math.random()*20 + 's';
-            char.style.animationDuration = 10 + Math.random()*20 + 's';
-            
-            // 鼠标交互
-            char.addEventListener('mouseenter', function() {
-                this.classList.add('burst');
-                this.addEventListener('animationend', () => {
-                    this.remove();
-                    createChar(); // 创建新字符保持总数
-                });
-            });
-            
-            return char;
+            char.style.animationDelay = Math.random()*15 + 's';
+            char.style.animationDuration = 15 + Math.random()*15 + 's';
+            char.style.opacity = 0;
+            matrix.appendChild(char);
         }
 
-        // 初始化字符
-        for(let i=0; i<300; i++) {
-            matrix.appendChild(createChar());
-        }
-
-        // 倒计时计算
         const target = new Date('2028-02-21T01:23:26').getTime();
         
         function updateTimer() {
