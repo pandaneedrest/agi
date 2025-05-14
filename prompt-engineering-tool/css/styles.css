@@ -265,8 +265,13 @@ textarea:focus {
 .platform-icon {
     width: 24px;
     height: 24px;
-    margin-right: 12px;
+    margin-right: 10px;
     border-radius: 4px;
+    object-fit: contain;
+}
+
+.platform-item span {
+    font-size: 14px;
 }
 
 /* 模态框样式 */
