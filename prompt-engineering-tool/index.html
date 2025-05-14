@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提示词工程工具 | Prompt Engineering Tool</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <meta name="description" content="提示词工程工具是一个用于创建、编辑和管理AI提示词模板的应用，帮助用户更高效地与大语言模型交互。">
+</head>
+<body>
+    <!-- 全局提示气泡容器 -->
+    <div id="toast-container"></div>
+    
+    <!-- 主应用容器 -->
+    <main class="container">
+        <!-- 左侧：提示词模板选择区 -->
+        <section id="prompt-list" class="sidebar">
+            <header class="sidebar-header">
+                <h2>提示词模板</h2>
+                <button id="add-prompt-btn" class="btn">+ 新建模板</button>
+            </header>
+            <div class="sidebar-content">
+                <div class="prompt-item selected">
+                    <span>角色扮演</span>
+                    <div class="prompt-actions">
+                        <button class="action-btn rename-btn">重命名</button>
+                        <button class="action-btn delete-btn">删除</button>
+                    </div>
+                </div>
+                <div class="prompt-item">
+                    <span>HTML演示</span>
+                    <div class="prompt-actions">
+                        <button class="action-btn rename-btn">重命名</button>
+                        <button class="action-btn delete-btn">删除</button>
+                    </div>
+                </div>
+                <div class="prompt-item">
+                    <span>股票分析</span>
+                    <div class="prompt-actions">
+                        <button class="action-btn rename-btn">重命名</button>
+                        <button class="action-btn delete-btn">删除</button>
+                    </div>
+                </div>
+                <div class="prompt-item">
+                    <span>李白风格诗</span>
+                    <div class="prompt-actions">
+                        <button class="action-btn rename-btn">重命名</button>
+                        <button class="action-btn delete-btn">删除</button>
+                    </div>
+                </div>
+                <div class="prompt-item">
+                    <span>医疗咨询</span>
+                    <div class="prompt-actions">
+                        <button class="action-btn rename-btn">重命名</button>
+                        <button class="action-btn delete-btn">删除</button>
+                    </div>
+                </div>
+                <div class="prompt-item">
+                    <span>塔罗解读</span>
+                    <div class="prompt-actions">
+                        <button class="action-btn rename-btn">重命名</button>
+                        <button class="action-btn delete-btn">删除</button>
+                    </div>
+                </div>
+                <div class="prompt-item">
+                    <span>产品需求</span>
+                    <div class="prompt-actions">
+                        <button class="action-btn rename-btn">重命名</button>
+                        <button class="action-btn delete-btn">删除</button>
+                    </div>
+                </div>
+                <div class="prompt-item">
+                    <span>旅行规划</span>
+                    <div class="prompt-actions">
+                        <button class="action-btn rename-btn">重命名</button>
+                        <button class="action-btn delete-btn">删除</button>
+                    </div>
+                </div>
+                <div class="prompt-item">
+                    <span>营销文案</span>
+                    <div class="prompt-actions">
+                        <button class="action-btn rename-btn">重命名</button>
+                        <button class="action-btn delete-btn">删除</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 中间：提示词编辑区 -->
+        <section id="prompt-editor" class="main-content">
+            <header class="editor-header">
+                <h2>提示词编辑</h2>
+                <div class="button-group">
+                    <button id="preview-prompt-btn" class="btn">预览</button>
+                    <button id="save-prompt-btn" class="btn primary-btn">保存</button>
+                    <button id="copy-prompt-btn" class="btn">复制提示词</button>
+                </div>
+            </header>
+            <div class="editor-sections">
+                <article class="editor-section">
+                    <h3>角色设定</h3>
+                    <textarea id="role-setting" placeholder="请定义AI助手的角色和身份...">你是一个专业、友好且有帮助的通用AI助手。你具备广泛的知识面，能够回答各种问题并提供有价值的信息。</textarea>
+                </article>
+                
+                <article class="editor-section">
+                    <h3>要完成的工作或目标</h3>
+                    <textarea id="task-goal" placeholder="请描述AI助手需要完成的任务或目标...">帮助用户解答各类问题，提供清晰、准确、有用的信息，以友好的方式与用户进行交流。</textarea>
+                </article>
+                
+                <article class="editor-section">
+                    <h3>输出格式</h3>
+                    <textarea id="output-format" placeholder="请描述回答的输出格式要求...">以清晰、结构化的方式回答问题，必要时使用段落、列表或表格组织信息，确保内容易于理解。</textarea>
+                </article>
+                
+                <article class="editor-section">
+                    <h3>样例</h3>
+                    <textarea id="examples" placeholder="请提供一个或多个示例，展示期望的输出格式和内容...">用户问题：请介绍人工智能的基础概念。
+
+AI回答：
+# 人工智能基础概念
+
+人工智能(AI)是指由人创造的系统，这些系统能够模拟人类智能完成任务。以下是AI的几个核心概念：
+
+## 主要分支
+- **机器学习**：系统从数据中学习模式
+- **深度学习**：使用神经网络处理大量数据
+- **自然语言处理**：理解和生成人类语言
+- **计算机视觉**：分析和理解视觉信息
+
+## 应用领域
+1. 医疗诊断和健康监测
+2. 自动驾驶技术
+3. 个性化推荐系统
+4. 智能家居和物联网
+
+AI技术正在快速发展，未来将继续改变我们的生活和工作方式。</textarea>
+                </article>
+                
+                <article class="editor-section">
+                    <h3>注意事项</h3>
+                    <textarea id="notes" placeholder="请列出AI在回答时需要注意的事项...">1. 保持客观、中立的立场
+2. 如遇不确定的信息，应明确表明
+3. 避免提供有害或误导性的内容
+4. 尊重用户隐私，不索要不必要的个人信息
+5. 遇到不道德请求时，礼貌拒绝并引导向积极方向</textarea>
+                </article>
+            </div>
+        </section>
+
+        <!-- 右侧：AI平台快捷访问 -->
+        <section id="llm-platforms" class="sidebar right-sidebar">
+            <header class="sidebar-header">
+                <h2>AI平台快捷方式</h2>
+            </header>
+            <div class="sidebar-content">
+                <nav class="platform-list">
+                    <a href="https://chat.deepseek.com/" target="_blank" class="platform-item">
+                        <img src="https://www.deepseek.com/favicon.ico" alt="DeepSeek" class="platform-icon">
+                        <span>DeepSeek</span>
+                    </a>
+                    <a href="https://www.doubao.com/" target="_blank" class="platform-item">
+                        <img src="https://www.doubao.com/favicon.ico" alt="豆包" class="platform-icon">
+                        <span>豆包</span>
+                    </a>
+                    <a href="https://chat.openai.com/" target="_blank" class="platform-item">
+                        <img src="https://chat.openai.com/favicon.ico" alt="ChatGPT" class="platform-icon">
+                        <span>ChatGPT</span>
+                    </a>
+                    <a href="https://claude.ai/" target="_blank" class="platform-item">
+                        <img src="https://claude.ai/favicon.ico" alt="Claude" class="platform-icon">
+                        <span>Claude</span>
+                    </a>
+                    <a href="https://yiyan.baidu.com/" target="_blank" class="platform-item">
+                        <img src="https://yiyan.baidu.com/favicon.ico" alt="文心一言" class="platform-icon">
+                        <span>文心一言</span>
+                    </a>
+                    <a href="https://qianwen.aliyun.com/" target="_blank" class="platform-item">
+                        <img src="https://qianwen.aliyun.com/favicon.ico" alt="通义千问" class="platform-icon">
+                        <span>通义千问</span>
+                    </a>
+                </nav>
+            </div>
+        </section>
+    </main>
+
+    <!-- 模态框组件 -->
+    <!-- 新建提示词模态框 -->
+    <div id="add-prompt-modal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3>新建提示词模板</h3>
+                <button class="close-modal">&times;</button>
+            </header>
+            <div class="modal-body">
+                <label for="new-prompt-name">模板名称</label>
+                <input type="text" id="new-prompt-name" placeholder="请输入模板名称" autofocus>
+            </div>
+            <footer class="modal-footer">
+                <button id="cancel-add-prompt" class="btn">取消</button>
+                <button id="confirm-add-prompt" class="btn primary-btn">确认</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- 重命名提示词模态框 -->
+    <div id="rename-prompt-modal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3>重命名提示词模板</h3>
+                <button class="close-modal">&times;</button>
+            </header>
+            <div class="modal-body">
+                <label for="rename-prompt-name">新名称</label>
+                <input type="text" id="rename-prompt-name" placeholder="请输入新名称">
+                <input type="hidden" id="rename-prompt-original">
+            </div>
+            <footer class="modal-footer">
+                <button id="cancel-rename" class="btn">取消</button>
+                <button id="confirm-rename" class="btn primary-btn">确认</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-content preview-modal-content">
+            <header class="modal-header">
+                <h3>提示词预览</h3>
+                <button class="close-modal">&times;</button>
+            </header>
+            <div class="modal-body">
+                <div id="preview-content" class="preview-box markdown-preview"></div>
+            </div>
+            <footer class="modal-footer">
+                <button id="close-preview" class="btn">关闭</button>
+                <button id="copy-preview" class="btn primary-btn">复制到剪贴板</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- 保存成功模态框 -->
+    <div id="save-success-modal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3>保存成功</h3>
+                <button class="close-modal">&times;</button>
+            </header>
+            <div class="modal-body">
+                <p id="save-success-message">提示词模板已成功保存！</p>
+            </div>
+            <footer class="modal-footer">
+                <button id="close-save-success" class="btn primary-btn">确定</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- 模态框背景遮罩 -->
+    <div id="modal-overlay" class="modal-overlay"></div>
+
+    <!-- 脚本 -->
+    <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
+</body>
+</html> 
