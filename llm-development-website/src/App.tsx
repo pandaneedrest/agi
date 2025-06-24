@@ -27,7 +27,7 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/data/llm-report.json')
+        const response = await fetch('./data/llm-report.json')
         const data = await response.json()
         setReportData(data)
       } catch (error) {
