@@ -98,11 +98,11 @@ const BreakthroughSection: React.FC<BreakthroughSectionProps> = ({ data }) => {
                   </div>
                   
                   <div className="flex items-center justify-center">
-                    <img 
-                      src="/images/transformer.png" 
-                      alt="Transformer Architecture"
-                      className="max-w-full h-auto rounded-xl shadow-lg"
-                    />
+                                          <img 
+                        src="/images/transformer.png" 
+                        alt="Transformer Architecture"
+                        className="max-w-full h-auto rounded-xl shadow-lg"
+                      />
                   </div>
                 </div>
               )}
