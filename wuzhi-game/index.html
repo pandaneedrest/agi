@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>五指消消乐</title>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #1a1a1a; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+        #game-container {
+            position: relative; width: 1280px; height: 720px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9); background: #000;
+            border-radius: 12px; overflow: hidden;
+        }
+        #input-video { display: none; }
+        #output-canvas { width: 100%; height: 100%; transform: scaleX(-1); }
+        
+        /* 游戏内提示样式 */
+        #hard-mode-alert {
+            position: absolute; top: 40%; left: 0; width: 100%; text-align: center;
+            font-size: 80px; color: #ff3838; font-weight: 900;
+            text-shadow: 0 0 30px red, 4px 4px 0px white;
+            display: none; animation: pulse 0.3s infinite; z-index: 5; pointer-events: none;
+        }
+        #max-power-alert {
+            position: absolute; top: 30%; left: 0; width: 100%; text-align: center;
+            font-size: 90px; color: #ff0000; font-weight: 900;
+            text-shadow: 0 0 50px #ff0000, 0 0 20px #ffff00;
+            display: none; animation: shake 0.1s infinite; z-index: 6; pointer-events: none;
+        }
+        #boom-alert {
+            position: absolute; top: 25%; left: 0; width: 100%; text-align: center;
+            font-size: 180px; color: #fff; font-weight: 900;
+            text-shadow: 0 0 50px #ff9f43, 0 0 100px #ff0000, 4px 4px 0px #000;
+            display: none; animation: expand 0.4s ease-out; z-index: 20; pointer-events: none;
+            mix-blend-mode: overlay; 
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-5px, 5px) rotate(5deg); }
+            50% { transform: translate(5px, -5px) rotate(-5deg); }
+            75% { transform: translate(-5px, -5px) rotate(5deg); }
+            100% { transform: translate(5px, 5px) rotate(-5deg); }
+        }
+        @keyframes expand {
+            0% { transform: scale(0.1) rotate(-10deg); opacity: 0; }
+            40% { transform: scale(1.3) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 0; }
+        }
+
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column;
+            justify-content: space-between; padding: 30px; box-sizing: border-box;
+            z-index: 15;
+        }
+        
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            width: 100%;
+        }
+        
+        #ingame-home-btn {
+            pointer-events: auto; 
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 50px; height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex; justify-content: center; align-items: center;
+            margin-right: 20px;
+        }
+        #ingame-home-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+            color: #fff; border-color: #fff;
+        }
+
+        .hud-text {
+            color: #fff; font-size: 32px; font-weight: 800; text-shadow: 2px 2px 0 #000;
+            display: flex; align-items: center; letter-spacing: 1px;
+        }
+        #combo-hud {
+            color: #ffd700; margin-left: 20px; font-size: 40px; font-style: italic;
+            text-shadow: 0 0 15px #e67e22; opacity: 0; transition: transform 0.1s;
+        }
+        #bomb-hud {
+            margin-left: 30px; color: #ff6b6b; font-size: 36px;
+            text-shadow: 0 0 10px #c0392b;
+        }
+        
+        #menu-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 10, 0.95); 
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; 
+            color: white; z-index: 30;
+            backdrop-filter: blur(5px);
+        }
+        
+        h1 { 
+            font-size: 80px; margin: 0 0 20px 0; color: #fff; 
+            letter-spacing: 5px; text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .instruction-container {
+            display: flex; align-items: center; justify-content: center;
+            margin: 40px 0; gap: 40px;
+        }
+
+        .step-box {
+            display: flex; flex-direction: column; align-items: center; opacity: 0.9;
+        }
+
+        .step-svg {
+            width: 120px; height: 120px; margin-bottom: 15px;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+        }
+
+        .step-text {
+            font-size: 18px; color: #aaa; font-weight: 300; letter-spacing: 1px;
+        }
+
+        .arrow-icon { font-size: 40px; color: #555; }
+
+        .action-buttons { display: flex; gap: 20px; margin-top: 40px; }
+
+        .btn-main {
+            padding: 15px 50px; font-size: 28px; font-weight: 700;
+            color: #000; background-color: #fff;
+            border: none; border-radius: 4px;
+            cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+        .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,255,255,0.4); }
+
+        .btn-secondary {
+            padding: 15px 40px; font-size: 28px; font-weight: 700;
+            color: #fff; background-color: transparent;
+            border: 2px solid #fff; border-radius: 4px;
+            cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-secondary:hover { background-color: rgba(255,255,255,0.1); transform: scale(1.05); }
+
+        #final-score {
+            font-size: 60px; font-weight: bold; color: #ffd700;
+            margin-bottom: 20px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div id="game-container">
+        <video id="input-video"></video>
+        <canvas id="output-canvas"></canvas>
+        <div id="hard-mode-alert">⚠️ HARD MODE!!! ⚠️</div>
+        <div id="max-power-alert">🔥 MAX DENSITY 🔥</div>
+        <div id="boom-alert">💣 BOOM!!! 💣</div>
+
+        <div id="ui-layer">
+            <div class="top-bar">
+                <div style="display:flex; align-items:center;">
+                    <button id="ingame-home-btn" onclick="quitGame()" title="回到首页">🏠</button>
+                    <div class="hud-text">
+                        得分: <span id="score" style="color:#00cec9; margin-left:10px;">0</span>
+                        <span id="combo-hud">x<span id="combo-count">0</span> MAX!</span>
+                    </div>
+                    <div class="hud-text" id="bomb-hud">💣 x<span id="bomb-count">3</span></div>
+                </div>
+                <div class="hud-text">时间: <span id="time">60</span>s</div>
+            </div>
+        </div>
+
+        <div id="menu-overlay">
+            <h1 id="menu-title">五指消消乐</h1>
+            <div id="final-score" style="display:none;"></div>
+            
+            <div class="instruction-container" id="instruction-ui">
+                <div class="step-box">
+                    <svg class="step-svg" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M30 70 L20 40" /> <path d="M45 60 L45 20" /> <path d="M55 60 L65 15" /> <path d="M65 60 L80 20" /> <path d="M75 70 L95 40" /> <path d="M30 70 Q50 90 75 70" /> 
+                        <circle cx="20" cy="35" r="5" fill="white" fill-opacity="0.6" stroke="none"/>
+                        <circle cx="45" cy="15" r="5" fill="white" fill-opacity="0.6" stroke="none"/>
+                        <circle cx="65" cy="10" r="5" fill="white" fill-opacity="0.6" stroke="none"/>
+                        <circle cx="80" cy="15" r="5" fill="white" fill-opacity="0.6" stroke="none"/>
+                        <circle cx="95" cy="35" r="5" fill="white" fill-opacity="0.6" stroke="none"/>
+                    </svg>
+                    <div class="step-text">五指触碰气球</div>
+                </div>
+
+                <div class="arrow-icon">➜</div>
+
+                <div class="step-box">
+                    <svg class="step-svg" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M30 60 Q20 60 20 40 Q20 20 40 20 Q50 20 50 35" /> 
+                        <rect x="40" y="20" width="15" height="40" rx="5" />
+                        <rect x="55" y="20" width="15" height="40" rx="5" />
+                        <rect x="70" y="25" width="15" height="35" rx="5" />
+                        <path d="M25 60 L85 60 Q95 60 95 80 Q95 95 80 95 L40 95 Q25 95 25 80 Z" />
+                        <path d="M35 50 L90 50" stroke-dasharray="5,5" opacity="0.5"/>
+                    </svg>
+                    <div class="step-text">握拳蓄力(时间变慢)</div>
+                </div>
+
+                <div class="arrow-icon">➜</div>
+
+                <div class="step-box">
+                    <svg class="step-svg" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M30 70 L20 40" /> <path d="M45 60 L45 20" />
+                        <path d="M55 60 L65 15" /> <path d="M65 60 L80 20" /> 
+                        <path d="M75 70 L95 40" /> <path d="M30 70 Q50 90 75 70" /> 
+                        <line x1="50" y1="10" x2="50" y2="5" opacity="0.8" />
+                        <line x1="85" y1="20" x2="90" y2="15" opacity="0.8" />
+                        <line x1="15" y1="40" x2="10" y2="35" opacity="0.8" />
+                    </svg>
+                    <div class="step-text">张开清屏(仅限3次)</div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="home-btn" class="btn-secondary" onclick="showMainMenu()" style="display:none;">回到首页</button>
+                <button id="start-btn" class="btn-main" onclick="startGame()">开始挑战</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const videoElement = document.getElementById('input-video');
+    const canvasElement = document.getElementById('output-canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const comboHudEl = document.getElementById('combo-hud');
+    const comboCountEl = document.getElementById('combo-count');
+    const bombCountEl = document.getElementById('bomb-count');
+    const menuOverlay = document.getElementById('menu-overlay');
+    const menuTitle = document.getElementById('menu-title');
+    const finalScoreEl = document.getElementById('final-score');
+    const instructionUI = document.getElementById('instruction-ui');
+    const hardModeAlert = document.getElementById('hard-mode-alert');
+    const maxPowerAlert = document.getElementById('max-power-alert');
+    const boomAlert = document.getElementById('boom-alert');
+    const startBtn = document.getElementById('start-btn');
+    const homeBtn = document.getElementById('home-btn');
+    const ingameHomeBtn = document.getElementById('ingame-home-btn');
+
+    let audioCtx = null;
+    function initAudio() {
+        if (!audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    
+    function playPewSound() {
+        if (!audioCtx) initAudio();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.type = 'triangle'; 
+        const now = audioCtx.currentTime;
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+        gainNode.gain.setValueAtTime(0.3, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+    }
+    
+    function playBoomSound() {
+        if (!audioCtx) initAudio();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.type = 'lowpass'; 
+        const now = audioCtx.currentTime;
+        osc.frequency.setValueAtTime(150, now); 
+        osc.frequency.exponentialRampToValueAtTime(0.01, now + 1.2);
+        gainNode.gain.setValueAtTime(1.0, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+        osc.start(now);
+        osc.stop(now + 1.2);
+    }
+
+    let isGameRunning = false;
+    let score = 0;
+    let combo = 0;
+    let timeLeft = 60;
+    let bombs = 3;
+    let enemies = [];
+    let effects = []; 
+    let explosionParticles = [];
+    let shockwaves = [];
+    let screenFlash = 0; 
+
+    let spawnTimer = 0;
+    let spawnInterval = 1000;
+    let speedMultiplier = 1; 
+    let timerInterval = null;
+    let isHardMode = false;
+    let maxDensityReached = false;
+    
+    let timeDilation = 1.0; 
+    let targetTimeDilation = 1.0;
+    let handPresenceTimers = [0, 0]; 
+    let fistHoldTimers = [0, 0];
+    let bombCooldown = 0; 
+
+    const FINGER_TIPS = [4, 8, 12, 16, 20];
+
+    canvasElement.width = 1280;
+    canvasElement.height = 720;
+
+    class ExplosionParticle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 15 + 2; 
+            this.vx = Math.cos(angle) * speed;
+            this.vy = Math.sin(angle) * speed;
+            this.life = 1.0;
+            this.decay = Math.random() * 0.03 + 0.01;
+            this.color = color || (Math.random() > 0.5 ? '#ffd700' : '#ff6b6b'); 
+            this.size = Math.random() * 6 + 2;
+        }
+        update() {
+            this.x += this.vx * timeDilation;
+            this.y += this.vy * timeDilation;
+            this.life -= this.decay;
+            this.vx *= 0.95; 
+            this.vy *= 0.95;
+        }
+        draw() {
+            canvasCtx.globalAlpha = Math.max(0, this.life);
+            canvasCtx.fillStyle = this.color;
+            canvasCtx.beginPath();
+            canvasCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            canvasCtx.fill();
+            canvasCtx.globalAlpha = 1.0;
+        }
+    }
+
+    class Shockwave {
+        constructor(x, y) {
+            this.x = x; this.y = y;
+            this.radius = 10;
+            this.maxRadius = canvasElement.width * 0.8;
+            this.life = 1.0;
+            this.width = 50;
+        }
+        update() {
+            this.radius += 40; 
+            this.life -= 0.04;
+            this.width -= 1;
+        }
+        draw() {
+            if (this.life <= 0) return;
+            canvasCtx.save();
+            canvasCtx.beginPath();
+            canvasCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            canvasCtx.strokeStyle = `rgba(255, 255, 255, ${this.life})`;
+            canvasCtx.lineWidth = Math.max(1, this.width);
+            canvasCtx.stroke();
+            canvasCtx.restore();
+        }
+    }
+
+    class FloatingText {
+        constructor(x, y, text, isCombo) {
+            this.x = x; this.y = y; this.text = text;
+            this.life = 1.0; this.scale = 0.5;
+            this.isCombo = isCombo;
+            this.color = isCombo ? "#ffd700" : "#ffffff";
+        }
+        update() {
+            this.y -= 3 * timeDilation;
+            this.life -= 0.02;
+            if (this.isCombo) this.scale += 0.05; else this.scale += 0.02;
+        }
+        draw() {
+            if (this.life > 0) {
+                canvasCtx.save();
+                canvasCtx.translate(this.x, this.y);
+                canvasCtx.scale(-this.scale, this.scale);
+                canvasCtx.globalAlpha = Math.max(0, this.life);
+                canvasCtx.fillStyle = this.color;
+                canvasCtx.font = "bold 40px Arial";
+                canvasCtx.textAlign = "center";
+                canvasCtx.shadowColor = "black"; canvasCtx.shadowBlur = 5;
+                canvasCtx.fillText(this.text, 0, 0);
+                canvasCtx.restore();
+            }
+        }
+    }
+
+    class Enemy {
+        constructor() {
+            this.radius = 40 + Math.random() * 15;
+            this.x = Math.random() * (canvasElement.width - this.radius * 2) + this.radius;
+            this.y = -this.radius * 2;
+            this.speed = (2.5 + Math.random() * 2) * speedMultiplier;
+            this.colorHue = Math.random() * 360;
+            this.color = `hsl(${this.colorHue}, 80%, 60%)`;
+            this.markedForDeletion = false;
+            this.wobbleOffset = Math.random() * Math.PI * 2;
+        }
+        update() {
+            this.y += this.speed * timeDilation;
+            const timeFactor = (Date.now() / 500) * (timeDilation > 0.5 ? 1 : 0.2);
+            this.x += Math.sin(timeFactor + this.wobbleOffset) * 1;
+
+            if (this.y - this.radius > canvasElement.height) {
+                this.markedForDeletion = true;
+                if (combo > 0) { combo = 0; updateComboHud(); }
+            }
+        }
+        draw() {
+            canvasCtx.beginPath();
+            canvasCtx.moveTo(this.x, this.y + this.radius * 0.8);
+            canvasCtx.quadraticCurveTo(this.x - 5, this.y + this.radius * 2.5, this.x + 2, this.y + this.radius * 3.5);
+            canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; canvasCtx.lineWidth = 2; canvasCtx.stroke();
+            canvasCtx.beginPath();
+            canvasCtx.ellipse(this.x, this.y, this.radius * 0.95, this.radius * 1.05, 0, 0, Math.PI * 2);
+            let gradient = canvasCtx.createRadialGradient(this.x - this.radius/3, this.y - this.radius/3, this.radius/10, this.x, this.y, this.radius);
+            gradient.addColorStop(0, `hsl(${this.colorHue}, 100%, 85%)`);
+            gradient.addColorStop(1, this.color);
+            canvasCtx.fillStyle = gradient; canvasCtx.fill();
+        }
+    }
+
+    function updateComboHud() {
+        if (combo > 1) {
+            comboCountEl.innerText = combo;
+            comboHudEl.style.opacity = 1;
+            comboHudEl.style.transform = "scale(1.2)";
+            setTimeout(() => { comboHudEl.style.transform = "scale(1)"; }, 100);
+        } else { comboHudEl.style.opacity = 0; }
+    }
+
+    function isFist(landmarks) {
+        let foldedFingers = 0;
+        const tips = [8, 12, 16, 20];
+        const pips = [6, 10, 14, 18];
+        for (let i = 0; i < 4; i++) {
+            if (landmarks[tips[i]].y > landmarks[pips[i]].y) foldedFingers++;
+        }
+        return foldedFingers >= 3;
+    }
+
+    function triggerSuperBomb() {
+        if (bombs <= 0 || bombCooldown > 0) return;
+        
+        bombCooldown = 30;
+        bombs--;
+        bombCountEl.innerText = bombs;
+        timeDilation = 1.0; 
+        
+        playBoomSound();
+        boomAlert.style.display = 'block';
+        setTimeout(() => { boomAlert.style.display = 'none'; }, 500);
+        
+        screenFlash = 1.0;
+
+        const centerX = canvasElement.width / 2;
+        const centerY = canvasElement.height / 2;
+        shockwaves.push(new Shockwave(centerX, centerY));
+
+        for(let i=0; i<80; i++) {
+            explosionParticles.push(new ExplosionParticle(centerX, centerY));
+        }
+        
+        let hitCount = 0;
+        enemies.forEach(enemy => {
+            if (!enemy.markedForDeletion) {
+                enemy.markedForDeletion = true;
+                hitCount++;
+                for(let k=0; k<10; k++) {
+                    explosionParticles.push(new ExplosionParticle(enemy.x, enemy.y, enemy.color));
+                }
+            }
+        });
+        
+        if (hitCount > 0) {
+            combo += hitCount;
+            updateComboHud();
+            score += hitCount * 20; 
+            scoreEl.innerText = score;
+            effects.push(new FloatingText(canvasElement.width/2, canvasElement.height/2, `BOOM! +${hitCount*20}`, true));
+        }
+    }
+
+    function onResults(results) {
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+        if (screenFlash > 0.01) {
+            canvasCtx.fillStyle = `rgba(255, 255, 255, ${screenFlash})`;
+            canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+            screenFlash *= 0.85; 
+        }
+
+        if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+            handPresenceTimers = [0, 0];
+            fistHoldTimers = [0, 0];
+            targetTimeDilation = 1.0;
+        }
+
+        let isAnyHandCharging = false;
+
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            let handsCount = results.multiHandLandmarks.length;
+            
+            for (let i = 0; i < handsCount; i++) {
+                const landmarks = results.multiHandLandmarks[i];
+                const colorConnector = i === 0 ? '#00FF00' : '#d63031';
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: colorConnector, lineWidth: 2});
+
+                handPresenceTimers[i]++;
+                const currentFistState = isFist(landmarks);
+
+                if (currentFistState) {
+                    fistHoldTimers[i]++;
+                    if (handPresenceTimers[i] > 30 && fistHoldTimers[i] > 5 && bombs > 0) {
+                        isAnyHandCharging = true;
+                        if(isGameRunning) {
+                             canvasCtx.translate(Math.random()*2-1, Math.random()*2-1);
+                        }
+                    }
+                } else {
+                    if (handPresenceTimers[i] > 30 && fistHoldTimers[i] > 10) {
+                         if (isGameRunning) triggerSuperBomb();
+                    }
+                    fistHoldTimers[i] = 0;
+                }
+
+                FINGER_TIPS.forEach(tipIndex => {
+                    const tip = landmarks[tipIndex];
+                    const fingerX = tip.x * canvasElement.width;
+                    const fingerY = tip.y * canvasElement.height;
+                    
+                    canvasCtx.beginPath(); canvasCtx.arc(fingerX, fingerY, 10, 0, 2 * Math.PI);
+                    canvasCtx.fillStyle = "rgba(255, 255, 0, 0.7)"; canvasCtx.fill();
+                    
+                    if (isGameRunning) checkCollision(fingerX, fingerY);
+                });
+            }
+        }
+
+        targetTimeDilation = isAnyHandCharging ? 0.1 : 1.0;
+        timeDilation = timeDilation + (targetTimeDilation - timeDilation) * 0.2;
+
+        if (isGameRunning) updateGame();
+        
+        shockwaves.forEach((sw, index) => {
+            sw.update();
+            sw.draw();
+            if(sw.life <= 0) shockwaves.splice(index, 1);
+        });
+
+        explosionParticles.forEach((p, index) => {
+            p.update();
+            p.draw();
+            if(p.life <= 0) explosionParticles.splice(index, 1);
+        });
+
+        canvasCtx.restore();
+    }
+
+    function checkCollision(x, y) {
+        enemies.forEach(enemy => {
+            if (!enemy.markedForDeletion) {
+                const dx = x - enemy.x;
+                const dy = y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < enemy.radius * 1.1) {
+                    enemy.markedForDeletion = true;
+                    playPewSound();
+                    combo++; updateComboHud();
+                    const points = 10 * combo;
+                    score += points; scoreEl.innerText = score;
+                    if (combo > 1) effects.push(new FloatingText(x, y, `x${combo} COMBO!`, true));
+                    else effects.push(new FloatingText(x, y, `+${points}`, false));
+                    canvasCtx.beginPath(); canvasCtx.arc(x, y, 60, 0, Math.PI * 2);
+                    canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.6)'; canvasCtx.fill();
+                    
+                    for(let i=0; i<3; i++) {
+                         explosionParticles.push(new ExplosionParticle(x, y, enemy.color));
+                    }
+                }
+            }
+        });
+    }
+
+    function updateGame() {
+        spawnTimer += 16 * timeDilation;
+        if (bombCooldown > 0) bombCooldown--;
+
+        while (spawnTimer > spawnInterval) {
+            enemies.push(new Enemy());
+            spawnTimer -= spawnInterval;
+        }
+        
+        if (isHardMode) {
+            if (spawnInterval > 15) spawnInterval -= 0.5 * timeDilation;
+            if (speedMultiplier < 7.0) speedMultiplier += 0.005 * timeDilation;
+            
+            if (spawnInterval <= 15 && !maxDensityReached) {
+                maxDensityReached = true;
+                maxPowerAlert.style.display = 'block';
+                setTimeout(() => { maxPowerAlert.style.display = 'none'; }, 2000);
+            }
+        }
+
+        enemies.forEach(e => { e.update(); e.draw(); });
+        enemies = enemies.filter(e => !e.markedForDeletion);
+        effects.forEach(e => { e.update(); e.draw(); });
+        effects = effects.filter(e => e.life > 0);
+    }
+
+    function quitGame() {
+        isGameRunning = false;
+        clearInterval(timerInterval);
+        hardModeAlert.style.display = 'none';
+        maxPowerAlert.style.display = 'none';
+        boomAlert.style.display = 'none';
+        enemies = [];
+        effects = [];
+        explosionParticles = [];
+        shockwaves = [];
+        showMainMenu();
+    }
+
+    function showMainMenu() {
+        menuOverlay.style.display = 'flex';
+        // 更新后的标题
+        menuTitle.innerText = "五指消消乐";
+        finalScoreEl.style.display = "none";
+        instructionUI.style.display = "flex";
+        startBtn.innerText = "开始挑战";
+        homeBtn.style.display = "none";
+        ingameHomeBtn.style.display = "none";
+        maxPowerAlert.style.display = 'none';
+    }
+
+    function startGame() {
+        initAudio();
+        
+        score = 0; combo = 0; timeLeft = 60; 
+        bombs = 3; 
+        bombCooldown = 0; 
+        bombCountEl.innerText = bombs;
+        enemies = []; effects = [];
+        explosionParticles = [];
+        shockwaves = [];
+        
+        handPresenceTimers = [0, 0];
+        fistHoldTimers = [0, 0];
+        timeDilation = 1.0;
+
+        speedMultiplier = 1.0; 
+        spawnInterval = 800;   
+        isHardMode = false;
+        maxDensityReached = false;
+        
+        scoreEl.innerText = '0';
+        timeEl.innerText = '60';
+        updateComboHud();
+        hardModeAlert.style.display = 'none';
+        maxPowerAlert.style.display = 'none';
+        
+        menuOverlay.style.display = 'none';
+        ingameHomeBtn.style.display = "flex";
+        
+        isGameRunning = true;
+
+        if (timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timeEl.innerText = timeLeft;
+            if (timeLeft === 55) activateHardMode();
+
+            if (timeLeft <= 10) timeEl.style.color = '#ff4757';
+            else timeEl.style.color = '#fff';
+            if (timeLeft <= 0) gameOver();
+        }, 1000);
+    }
+
+    function activateHardMode() {
+        isHardMode = true;
+        hardModeAlert.style.display = 'block';
+        setTimeout(() => { hardModeAlert.style.display = 'none'; }, 2000);
+        speedMultiplier = 2.5; 
+        spawnInterval = 300;   
+    }
+
+    function gameOver() {
+        isGameRunning = false;
+        clearInterval(timerInterval);
+        hardModeAlert.style.display = 'none';
+        maxPowerAlert.style.display = 'none';
+        boomAlert.style.display = 'none';
+        
+        menuTitle.innerText = "游戏结束";
+        finalScoreEl.innerHTML = `最终得分: <span style="color:#fff">${score}</span>`;
+        finalScoreEl.style.display = "block";
+        instructionUI.style.display = "none";
+        startBtn.innerText = "再次挑战";
+        homeBtn.style.display = "block";
+        ingameHomeBtn.style.display = "none";
+        menuOverlay.style.display = "flex";
+    }
+
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+    hands.onResults(onResults);
+
+    const camera = new Camera(videoElement, {
+        onFrame: async () => { await hands.send({image: videoElement}); },
+        width: 1280, height: 720
+    });
+    camera.start();
+
+    showMainMenu();
+
+</script>
+</body>
+</html>
