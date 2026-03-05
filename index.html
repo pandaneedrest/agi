@@ -3,375 +3,586 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panda's Space | 个人工作生活区</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>Panda's Space</title>
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    h1, h2, h3 { font-family: 'Lora', serif; }
-
-    /* Hero gradient */
-    .hero-bg {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    :root {
+      --bg-body: #fbfbfd;
+      --text-main: #1d1d1f;
+      --text-sub: #86868b;
+      --border: #d2d2d7;
     }
 
-    /* Section label pill */
-    .zone-label {
-      display: inline-flex;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-body);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 80px;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ── Header ── */
+    header {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 32px;
+      display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.35rem 1rem;
-      border-radius: 9999px;
-      font-size: 0.8rem;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.02em;
+    }
+    .logo-emoji { font-size: 28px; }
+
+    .search-wrapper {
+      flex: 1;
+      max-width: 480px;
+      margin: 0 24px;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      padding: 12px 20px 12px 48px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.05);
+      background: #fff;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      outline: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-color: rgba(0,0,0,0.1);
+    }
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ── Filters ── */
+    .filters {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px 40px;
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .filter-btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      background: rgba(0,0,0,0.03);
+      color: var(--text-sub);
+      font-size: 13px;
       font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover { color: var(--text-main); background: rgba(0,0,0,0.06); }
+    .filter-btn.active {
+      background: #1d1d1f;
+      color: #fff;
     }
 
-    /* Card hover lift */
+    /* ── Grid ── */
+    .grid-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 28px;
+    }
+
+    /* ── Card Styles ── */
     .card {
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+      height: 240px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s;
+      border: 1px solid rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
     }
+
     .card:hover {
-      transform: translateY(-6px);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      z-index: 10;
     }
 
-    /* Bottom accent bar on card */
-    .card-accent {
-      height: 3px;
-      width: 0;
-      transition: width 0.3s ease;
-      border-radius: 0 0 12px 12px;
+    /* ── Card Backgrounds (Mesh Gradients & Shapes) ── */
+    .card-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      transition: transform 0.6s ease;
     }
-    .card:hover .card-accent { width: 100%; }
-
-    /* Subtle section divider */
-    .section-divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    .card:hover .card-bg {
+      transform: scale(1.1);
     }
 
-    /* Nav link */
-    .nav-link {
-      font-size: 0.85rem;
-      color: #94a3b8;
-      transition: color 0.2s;
+    /* 1. Prompt Tool: Blue Mesh + Code Symbols */
+    .bg-prompt {
+      background: radial-gradient(circle at 0% 0%, #e0f2fe 0%, transparent 50%),
+                  radial-gradient(circle at 100% 100%, #dbeafe 0%, transparent 50%),
+                  #f0f9ff;
     }
-    .nav-link:hover { color: #f1f5f9; }
+    .bg-prompt::before {
+      content: "{ }";
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-family: monospace;
+      font-weight: 900;
+      font-size: 140px;
+      color: #3b82f6;
+      opacity: 0.05;
+      transform: rotate(-15deg);
+    }
+    .bg-prompt::after {
+      content: "";
+      position: absolute;
+      bottom: 40px;
+      left: 30px;
+      width: 60px;
+      height: 8px;
+      background: #3b82f6;
+      border-radius: 4px;
+      opacity: 0.1;
+      box-shadow: 0 15px 0 #3b82f6, 0 30px 0 #3b82f6;
+    }
 
-    /* Badge */
+    /* 2. Stock Calc: Green Mesh + Chart */
+    .bg-stock {
+      background: radial-gradient(circle at 100% 0%, #dcfce7 0%, transparent 60%),
+                  radial-gradient(circle at 0% 100%, #f0fdf4 0%, transparent 60%),
+                  #f0fdf4;
+    }
+    .bg-stock::before {
+      content: "";
+      position: absolute;
+      bottom: -20px;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100 L0 60 Q25 80 50 40 T100 20 L100 100 Z' fill='url(%23grad)' opacity='0.1'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2322c55e' /%3E%3Cstop offset='100%25' stop-color='white' stop-opacity='0' /%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E");
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+    .bg-stock::after {
+      content: "$";
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 100px;
+      font-weight: 800;
+      color: #22c55e;
+      opacity: 0.05;
+      transform: rotate(10deg);
+    }
+
+    /* 3. LLM Report: Purple Mesh + Brain/Nodes */
+    .bg-llm {
+      background: radial-gradient(circle at 50% 50%, #f3e8ff 0%, #faf5ff 100%);
+    }
+    .bg-llm::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(#a855f7 1px, transparent 1px);
+      background-size: 30px 30px;
+      opacity: 0.08;
+    }
+    .bg-llm::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);
+      filter: blur(20px);
+    }
+
+    /* 4. Game: Orange Mesh + Floating Shapes */
+    .bg-game {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    }
+    /* Abstract shapes simulating the game pieces */
+    .bg-game-shape {
+      position: absolute;
+      border-radius: 12px;
+      opacity: 0.6;
+      filter: blur(8px);
+    }
+    .shape-1 { width: 60px; height: 60px; background: #fca5a5; top: 20%; left: 10%; transform: rotate(15deg); }
+    .shape-2 { width: 50px; height: 50px; background: #93c5fd; bottom: 30%; right: 15%; transform: rotate(-10deg); }
+    .shape-3 { width: 40px; height: 40px; background: #fde047; top: 15%; right: 25%; transform: rotate(25deg); }
+    .shape-4 { width: 55px; height: 55px; background: #86efac; bottom: 15%; left: 20%; transform: rotate(-5deg); }
+
+    /* 5. External AI: Dark Glass */
+    .bg-dark {
+      background: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+    }
+    .bg-dark::after {
+      content: "AI";
+      position: absolute;
+      bottom: -10px;
+      right: 10px;
+      font-size: 120px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.03);
+      letter-spacing: -5px;
+    }
+
+    /* ── Overlay for Text Readability ── */
+    /* A subtle gradient from bottom to top to make text pop */
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+      z-index: 1;
+    }
+    /* Dark card overlay */
+    .card-overlay-dark {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
+      z-index: 1;
+    }
+
+    /* ── Card Content ── */
+    .card-content {
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
     .badge {
-      display: inline-block;
-      padding: 0.2rem 0.65rem;
-      font-size: 0.7rem;
-      font-weight: 500;
-      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 6px 12px;
+      border-radius: 99px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      color: var(--text-main);
+    }
+    .badge-dark {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      backdrop-filter: blur(10px);
     }
 
-    /* Zone section bg variants */
-    .zone-work   { background: #f0f7ff; }
-    .zone-learn  { background: #f5f3ff; }
-    .zone-play   { background: #fff7ed; }
+    .card-body {
+      margin-top: auto;
+    }
 
-    /* Scroll anchor offset */
-    .scroll-target { scroll-margin-top: 72px; }
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
+    }
+    .text-white { color: #fff !important; }
+    .text-white-sub { color: rgba(255,255,255,0.7) !important; }
 
-    /* Quick-link button */
-    .quick-link {
-      display: inline-flex;
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .card-footer {
+      display: flex;
       align-items: center;
-      gap: 0.4rem;
-      padding: 0.45rem 1.1rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
+      gap: 8px;
+      font-size: 12px;
       font-weight: 500;
-      transition: background 0.2s, transform 0.2s;
+      color: var(--text-sub);
+      border-top: 1px solid rgba(0,0,0,0.06);
+      padding-top: 16px;
     }
-    .quick-link:hover { transform: translateX(3px); }
+    .footer-dark { border-top-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
 
-    /* Arrow icon */
-    .arrow-icon {
-      transition: transform 0.2s;
+    .avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #f1f1f1;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 10px;
     }
-    .quick-link:hover .arrow-icon { transform: translateX(4px); }
+
+    /* ── Section Title ── */
+    .section-title {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 32px;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    /* Animation */
+    .hidden { display: none; }
+    .fade-in { animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body>
 
-  <!-- ── Navigation ── -->
-  <nav class="sticky top-0 z-50 hero-bg border-b border-white/10 backdrop-blur">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <a href="/" class="text-white font-serif text-lg tracking-wide">🐼 Panda's Space</a>
-      <div class="flex items-center gap-6">
-        <a href="#work"  class="nav-link">工作区</a>
-        <a href="#learn" class="nav-link">学习区</a>
-        <a href="#play"  class="nav-link">休闲区</a>
-        <div class="w-px h-4 bg-white/20"></div>
-        <a href="https://chat.deepseek.com" target="_blank" class="nav-link">DeepSeek</a>
-        <a href="https://claude.ai"         target="_blank" class="nav-link">Claude</a>
-        <a href="https://chat.openai.com"   target="_blank" class="nav-link">ChatGPT</a>
-      </div>
+  <header>
+    <div class="logo">
+      <span class="logo-emoji">🐼</span> Panda's Space
     </div>
-  </nav>
-
-  <!-- ── Hero ── -->
-  <header class="hero-bg text-white">
-    <div class="max-w-6xl mx-auto px-6 py-24 flex flex-col md:flex-row items-center gap-12">
-      <!-- Text -->
-      <div class="flex-1">
-        <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-4">Personal Space</p>
-        <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-6">
-          工作 · 学习 · 生活<br>
-          <span class="text-slate-400">都在这里</span>
-        </h1>
-        <p class="text-slate-300 text-lg leading-relaxed max-w-xl mb-8">
-          这里是我的个人角落——用 AI 做的工具、读过的报告、下班后玩的小游戏，全都放在这里。
-        </p>
-        <div class="flex gap-4 flex-wrap">
-          <a href="#work"  class="px-5 py-2.5 bg-blue-500 hover:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors">进入工作区 →</a>
-          <a href="#play"  class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-colors">去休闲一下 →</a>
-        </div>
-      </div>
-      <!-- Zone Cards Preview -->
-      <div class="flex-shrink-0 grid grid-cols-3 gap-3 text-center">
-        <a href="#work"  class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-xl px-5 py-6 transition-colors cursor-pointer">
-          <div class="text-3xl mb-2">💼</div>
-          <div class="text-white text-xs font-semibold">工作区</div>
-          <div class="text-blue-300 text-xs mt-1">2 个工具</div>
-        </a>
-        <a href="#learn" class="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/30 rounded-xl px-5 py-6 transition-colors cursor-pointer">
-          <div class="text-3xl mb-2">📚</div>
-          <div class="text-white text-xs font-semibold">学习区</div>
-          <div class="text-purple-300 text-xs mt-1">1 篇报告</div>
-        </a>
-        <a href="#play"  class="bg-orange-500/20 hover:bg-orange-500/30 border border-orange-400/30 rounded-xl px-5 py-6 transition-colors cursor-pointer">
-          <div class="text-3xl mb-2">🎮</div>
-          <div class="text-white text-xs font-semibold">休闲区</div>
-          <div class="text-orange-300 text-xs mt-1">1 个游戏</div>
-        </a>
-      </div>
+    <div class="search-wrapper">
+      <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search tools, reports, games...">
     </div>
+    <a href="https://github.com/pandaneedrest" target="_blank" style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;">
+      <svg height="20" width="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
   </header>
 
-  <!-- ═══════════════════════════════════════
-       ZONE 1 · 工作区
-  ═══════════════════════════════════════ -->
-  <section id="work" class="scroll-target zone-work py-20 px-6">
-    <div class="max-w-6xl mx-auto">
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">🔥 Trending</button>
+    <button class="filter-btn" data-filter="work">💼 Work</button>
+    <button class="filter-btn" data-filter="learn">📚 Learn</button>
+    <button class="filter-btn" data-filter="play">🎮 Play</button>
+    <button class="filter-btn" data-filter="ai">🤖 AI Tools</button>
+  </div>
 
-      <!-- Zone Header -->
-      <div class="flex items-center gap-4 mb-12">
-        <span class="zone-label bg-blue-100 text-blue-700">💼 工作区</span>
-        <div class="flex-1 section-divider"></div>
-      </div>
-      <div class="mb-10">
-        <h2 class="text-2xl font-bold text-slate-800 mb-2">提升效率的工具</h2>
-        <p class="text-slate-500">用 AI 辅助打造的日常工作助手，帮你快人一步。</p>
-      </div>
+  <div class="section-title" id="sectionTitle">✨ Spaces of the week</div>
 
-      <!-- Cards -->
-      <div class="grid md:grid-cols-2 gap-8">
+  <div class="grid-container">
 
-        <!-- Card: Prompt Tool -->
-        <article class="card relative bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
-          <div class="p-8">
-            <div class="flex items-start gap-5 mb-5">
-              <div class="p-3 rounded-xl bg-blue-50 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-bold text-slate-800 mb-1">Prompt Engineering Tool</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">一个专为快速试验和优化 AI 提示词而打造的工具，让你的 Prompt 更精准、更高效。</p>
-              </div>
-            </div>
-            <div class="flex flex-wrap gap-2 mb-6">
-              <span class="badge bg-blue-50 text-blue-700">AI Prompt</span>
-              <span class="badge bg-indigo-50 text-indigo-700">效率工具</span>
-              <span class="badge bg-sky-50 text-sky-700">实验室</span>
-            </div>
-            <a href="https://agiworklab.com/prompt-engineering-tool/index.html" target="_blank"
-               class="quick-link bg-blue-50 text-blue-700 hover:bg-blue-100">
-              打开工具
-              <svg class="arrow-icon h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-              </svg>
-            </a>
+    <!-- Card 1: Prompt Tool -->
+    <a href="https://agiworklab.com/prompt-engineering-tool/index.html" target="_blank" class="card" data-category="work">
+      <div class="card-bg bg-prompt"></div>
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <div class="card-header">
+          <span class="badge">Running</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Prompt Engineering Tool</h3>
+          <p class="card-desc">Efficiently experiment with and optimize your AI prompts.</p>
+          <div class="card-footer">
+            <div class="avatar">P</div>
+            <span>panda/work</span>
           </div>
-          <div class="card-accent bg-gradient-to-r from-blue-400 to-indigo-500 absolute bottom-0 left-0"></div>
-        </article>
+        </div>
+      </div>
+    </a>
 
-        <!-- Card: Stock Calculator -->
-        <article class="card relative bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
-          <div class="p-8">
-            <div class="flex items-start gap-5 mb-5">
-              <div class="p-3 rounded-xl bg-green-50 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-bold text-slate-800 mb-1">Stock Calculator</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">投资收益、盈亏平衡点、风险评估——一个计算器把投资数据算清楚。</p>
-              </div>
-            </div>
-            <div class="flex flex-wrap gap-2 mb-6">
-              <span class="badge bg-green-50 text-green-700">收益计算</span>
-              <span class="badge bg-emerald-50 text-emerald-700">风险评估</span>
-              <span class="badge bg-teal-50 text-teal-700">盈亏分析</span>
-            </div>
-            <a href="https://agiworklab.com/stock-calculator/index.html" target="_blank"
-               class="quick-link bg-green-50 text-green-700 hover:bg-green-100">
-              打开计算器
-              <svg class="arrow-icon h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-              </svg>
-            </a>
+    <!-- Card 2: Stock Calculator -->
+    <a href="https://agiworklab.com/stock-calculator/index.html" target="_blank" class="card" data-category="work">
+      <div class="card-bg bg-stock"></div>
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <div class="card-header">
+          <span class="badge">Running</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Stock Calculator</h3>
+          <p class="card-desc">Investment returns, break-even analysis, and risk assessment.</p>
+          <div class="card-footer">
+            <div class="avatar">P</div>
+            <span>panda/work</span>
           </div>
-          <div class="card-accent bg-gradient-to-r from-green-400 to-teal-500 absolute bottom-0 left-0"></div>
-        </article>
-
+        </div>
       </div>
-    </div>
-  </section>
+    </a>
 
-  <!-- ═══════════════════════════════════════
-       ZONE 2 · 学习区
-  ═══════════════════════════════════════ -->
-  <section id="learn" class="scroll-target zone-learn py-20 px-6">
-    <div class="max-w-6xl mx-auto">
-
-      <!-- Zone Header -->
-      <div class="flex items-center gap-4 mb-12">
-        <span class="zone-label bg-purple-100 text-purple-700">📚 学习区</span>
-        <div class="flex-1 section-divider"></div>
-      </div>
-      <div class="mb-10">
-        <h2 class="text-2xl font-bold text-slate-800 mb-2">值得深读的内容</h2>
-        <p class="text-slate-500">对 AI 发展历程的梳理与思考，帮你建立更完整的认知框架。</p>
-      </div>
-
-      <!-- Cards -->
-      <div class="grid md:grid-cols-1 gap-8 max-w-3xl">
-
-        <!-- Card: LLM Report -->
-        <article class="card relative bg-white rounded-2xl shadow-sm border border-purple-100 overflow-hidden">
-          <div class="p-8 flex flex-col md:flex-row gap-7 items-start">
-            <div class="p-4 rounded-xl bg-purple-50 flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <div class="flex-1">
-              <h3 class="text-xl font-bold text-slate-800 mb-2">LLM Development Report</h3>
-              <p class="text-slate-500 text-sm leading-relaxed mb-5">
-                从统计语言模型到现代大模型的完整发展史——涵盖 Transformer、GPT、RLHF 等关键技术节点，梳理 AI 智能涌现背后的技术脉络。
-              </p>
-              <div class="flex flex-wrap gap-2 mb-6">
-                <span class="badge bg-purple-50 text-purple-700">AI 发展史</span>
-                <span class="badge bg-blue-50 text-blue-700">技术演进</span>
-                <span class="badge bg-indigo-50 text-indigo-700">深度报告</span>
-                <span class="badge bg-violet-50 text-violet-700">Transformer</span>
-              </div>
-              <a href="https://agiworklab.com/llm-development-website/index.html" target="_blank"
-                 class="quick-link bg-purple-50 text-purple-700 hover:bg-purple-100">
-                阅读报告
-                <svg class="arrow-icon h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                </svg>
-              </a>
-            </div>
+    <!-- Card 3: LLM Report -->
+    <a href="https://agiworklab.com/llm-development-website/index.html" target="_blank" class="card" data-category="learn">
+      <div class="card-bg bg-llm"></div>
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <div class="card-header">
+          <span class="badge">Static</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">LLM Development Report</h3>
+          <p class="card-desc">A deep dive into the history and evolution of Large Language Models.</p>
+          <div class="card-footer">
+            <div class="avatar">P</div>
+            <span>panda/learn</span>
           </div>
-          <div class="card-accent bg-gradient-to-r from-purple-400 to-indigo-500 absolute bottom-0 left-0"></div>
-        </article>
-
+        </div>
       </div>
-    </div>
-  </section>
+    </a>
 
-  <!-- ═══════════════════════════════════════
-       ZONE 3 · 休闲区
-  ═══════════════════════════════════════ -->
-  <section id="play" class="scroll-target zone-play py-20 px-6">
-    <div class="max-w-6xl mx-auto">
-
-      <!-- Zone Header -->
-      <div class="flex items-center gap-4 mb-12">
-        <span class="zone-label bg-orange-100 text-orange-700">🎮 休闲区</span>
-        <div class="flex-1 section-divider"></div>
+    <!-- Card 4: Game -->
+    <a href="./wuzhi-game/index.html" class="card" data-category="play">
+      <div class="card-bg bg-game">
+        <div class="bg-game-shape shape-1"></div>
+        <div class="bg-game-shape shape-2"></div>
+        <div class="bg-game-shape shape-3"></div>
+        <div class="bg-game-shape shape-4"></div>
       </div>
-      <div class="mb-10">
-        <h2 class="text-2xl font-bold text-slate-800 mb-2">下班后放松一下</h2>
-        <p class="text-slate-500">简单有趣的小游戏，脑子累了就来这里解压。</p>
-      </div>
-
-      <!-- Cards -->
-      <div class="grid md:grid-cols-2 gap-8 max-w-3xl">
-
-        <!-- Card: 五指消消乐 -->
-        <article class="card relative bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden">
-          <div class="p-8">
-            <!-- Game Preview Area -->
-            <div class="w-full h-28 rounded-xl bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center mb-6 overflow-hidden">
-              <div class="grid grid-cols-5 gap-1.5 opacity-70">
-                <div class="w-7 h-7 rounded-md bg-red-400"></div>
-                <div class="w-7 h-7 rounded-md bg-blue-400"></div>
-                <div class="w-7 h-7 rounded-md bg-red-400"></div>
-                <div class="w-7 h-7 rounded-md bg-green-400"></div>
-                <div class="w-7 h-7 rounded-md bg-blue-400"></div>
-                <div class="w-7 h-7 rounded-md bg-green-400"></div>
-                <div class="w-7 h-7 rounded-md bg-yellow-400"></div>
-                <div class="w-7 h-7 rounded-md bg-blue-400"></div>
-                <div class="w-7 h-7 rounded-md bg-yellow-400"></div>
-                <div class="w-7 h-7 rounded-md bg-red-400"></div>
-              </div>
-            </div>
-            <div class="flex items-start gap-4 mb-5">
-              <div class="p-3 rounded-xl bg-orange-50 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-bold text-slate-800 mb-1">五指消消乐</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">连接相邻相同颜色方块，用最少步数清空棋盘。简单上手，越玩越上瘾。</p>
-              </div>
-            </div>
-            <div class="flex flex-wrap gap-2 mb-6">
-              <span class="badge bg-orange-50 text-orange-700">休闲益智</span>
-              <span class="badge bg-yellow-50 text-yellow-700">消除类</span>
-              <span class="badge bg-red-50 text-red-700">减压</span>
-            </div>
-            <a href="./wuzhi-game/index.html"
-               class="quick-link bg-orange-50 text-orange-700 hover:bg-orange-100">
-              开始游戏
-              <svg class="arrow-icon h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-              </svg>
-            </a>
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <div class="card-header">
+          <span class="badge">Game</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">五指消消乐 (WuZhi)</h3>
+          <p class="card-desc">Connect matching colors. A relaxing puzzle game for your break.</p>
+          <div class="card-footer">
+            <div class="avatar">P</div>
+            <span>panda/play</span>
           </div>
-          <div class="card-accent bg-gradient-to-r from-orange-400 to-yellow-500 absolute bottom-0 left-0"></div>
-        </article>
+        </div>
+      </div>
+    </a>
 
+    <!-- Card 5: DeepSeek -->
+    <a href="https://chat.deepseek.com" target="_blank" class="card" data-category="ai">
+      <div class="card-bg bg-dark"></div>
+      <div class="card-overlay-dark"></div>
+      <div class="card-content">
+        <div class="card-header">
+          <span class="badge badge-dark">External</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title text-white">DeepSeek Chat</h3>
+          <p class="card-desc text-white-sub">Advanced coding and reasoning model.</p>
+          <div class="card-footer footer-dark">
+            <div class="avatar">AI</div>
+            <span>deepseek-ai</span>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+    </a>
 
-  <!-- ── Footer ── -->
-  <footer class="hero-bg text-slate-400 py-12 px-6 mt-0">
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-      <div>
-        <p class="text-white font-serif text-base mb-1">🐼 Panda's Space</p>
-        <p class="text-sm">Built with curiosity and too much coffee.</p>
+    <!-- Card 6: Claude -->
+    <a href="https://claude.ai" target="_blank" class="card" data-category="ai">
+      <div class="card-bg bg-dark" style="background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);"></div>
+      <div class="card-overlay-dark"></div>
+      <div class="card-content">
+        <div class="card-header">
+          <span class="badge badge-dark">External</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title text-white">Claude</h3>
+          <p class="card-desc text-white-sub">Helpful and harmless AI assistant by Anthropic.</p>
+          <div class="card-footer footer-dark">
+            <div class="avatar">AI</div>
+            <span>anthropic</span>
+          </div>
+        </div>
       </div>
-      <div class="flex gap-6 text-sm">
-        <a href="#work"  class="hover:text-white transition-colors">工作区</a>
-        <a href="#learn" class="hover:text-white transition-colors">学习区</a>
-        <a href="#play"  class="hover:text-white transition-colors">休闲区</a>
-      </div>
-    </div>
-  </footer>
+    </a>
+
+  </div>
+
+  <div style="text-align:center; padding: 40px; color: var(--text-sub); font-size: 13px;">
+    Built with curiosity and too much coffee · 2025
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const cards = document.querySelectorAll('.card');
+      const sectionTitle = document.getElementById('sectionTitle');
+      const searchInput = document.getElementById('searchInput');
+
+      const updateGrid = (filterValue, searchTerm) => {
+        cards.forEach(card => {
+          const category = card.getAttribute('data-category');
+          const title = card.querySelector('.card-title').textContent.toLowerCase();
+          const desc = card.querySelector('.card-desc').textContent.toLowerCase();
+          
+          const matchesFilter = filterValue === 'all' || category === filterValue;
+          const matchesSearch = title.includes(searchTerm) || desc.includes(searchTerm);
+
+          if (matchesFilter && matchesSearch) {
+            card.classList.remove('hidden');
+            card.classList.add('fade-in');
+          } else {
+            card.classList.add('hidden');
+            card.classList.remove('fade-in');
+          }
+        });
+      };
+
+      let currentFilter = 'all';
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.getAttribute('data-filter');
+          
+          if (currentFilter === 'all') sectionTitle.textContent = '✨ Spaces of the week';
+          else if (currentFilter === 'work') sectionTitle.textContent = '💼 Work Tools';
+          else if (currentFilter === 'learn') sectionTitle.textContent = '📚 Learning Resources';
+          else if (currentFilter === 'play') sectionTitle.textContent = '🎮 Games & Fun';
+          else if (currentFilter === 'ai') sectionTitle.textContent = '🤖 AI Assistants';
+
+          updateGrid(currentFilter, searchInput.value.toLowerCase());
+        });
+      });
+
+      searchInput.addEventListener('input', (e) => {
+        updateGrid(currentFilter, e.target.value.toLowerCase());
+      });
+    });
+  </script>
 
 </body>
 </html>
