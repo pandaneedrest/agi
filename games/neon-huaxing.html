@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>霓虹滑行</title>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #050010; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+        #game-container {
+            position: relative; width: 1280px; height: 720px;
+            box-shadow: 0 0 100px rgba(255, 0, 255, 0.3); background: linear-gradient(to bottom, #0b001a, #240046);
+            border-radius: 16px; overflow: hidden; border: 2px solid #d000ff;
+        }
+        #input-video { display: none; }
+        /* 镜像翻转，让歪头方向符合直觉 */
+        #output-canvas { width: 100%; height: 100%; transform: scaleX(-1); }
+
+        /* UI 层 */
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column;
+            justify-content: space-between; padding: 30px; box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            width: 100%;
+        }
+
+        .home-btn {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.8); border-radius: 50%; width: 50px; height: 50px;
+            font-size: 24px; cursor: pointer; transition: all 0.2s ease;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px); pointer-events: auto;
+        }
+        .home-btn:hover { background: rgba(255,0,255,0.3); transform: scale(1.1); color: #fff; border-color: #f0f; }
+
+        .score-display {
+            font-size: 60px; font-weight: 900; color: #00ffff;
+            text-shadow: 0 0 20px #00ffff; font-style: italic;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        .tilt-indicator {
+            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+            width: 200px; height: 10px; background: rgba(255,255,255,0.2);
+            border-radius: 5px; overflow: hidden;
+        }
+        .tilt-bar {
+            width: 50%; height: 100%; background: #d000ff;
+            transition: width 0.1s, transform 0.1s;
+            position: relative; left: 50%;
+        }
+
+        /* 菜单遮罩 */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 0, 20, 0.95); z-index: 20;
+            display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
+            gap: 20px;
+            padding-top: 72px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 { 
+            font-size: 68px; color: #fff; margin-bottom: 0; letter-spacing: 5px; 
+            text-shadow: 4px 4px 0 #d000ff, 0 0 40px #00ffff; font-style: italic;
+            background: linear-gradient(to bottom, #fff, #00ffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .instruction-box {
+            border: 2px solid #d000ff; padding: 24px 44px 28px; border-radius: 20px;
+            background: rgba(30, 0, 50, 0.8);
+            text-align: center; margin-bottom: 0;
+            box-shadow: 0 0 50px rgba(208, 0, 255, 0.3);
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+        }
+        .tilt-panels {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .tilt-panel {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+        }
+        .tilt-panel-label {
+            font-size: 14px; font-weight: 700; letter-spacing: 1px;
+        }
+        
+        .btn-main {
+            padding: 16px 72px; font-size: 28px; font-weight: 900;
+            background: #d000ff; color: #fff; border: none; border-radius: 50px; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s; pointer-events: auto;
+            text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 0 40px rgba(208, 0, 255, 0.6);
+        }
+        .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 80px rgba(208, 0, 255, 0.8); background: #e040ff; }
+
+        #final-score { font-size: 90px; color: #00ffff; margin-bottom: 0; display: none; font-weight: 900; }
+        .score-label { font-size: 22px; color: #aaa; margin-bottom: 0; display: none; letter-spacing: 2px; }
+
+        /* 教程动画 */
+        .tutorial-anim { animation: tiltDemo 2s infinite ease-in-out; transform-origin: center bottom; }
+        @keyframes tiltDemo {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+        }
+        
+        /* 撞击红屏 */
+        #crash-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 15;
+        }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div id="game-container">
+    <video id="input-video"></video>
+    <canvas id="output-canvas"></canvas>
+    <div id="crash-overlay"></div>
+
+    <div id="ui-layer">
+        <div class="top-bar">
+            <button class="home-btn" onclick="quitGame()" title="回到首页">🏠</button>
+            <div class="score-display"><span id="score">0</span>m</div>
+        </div>
+        
+        <div class="tilt-indicator">
+            <div class="tilt-bar" id="tilt-bar"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="menu-overlay">
+        <h1 id="menu-title">霓虹滑雪</h1>
+        <div id="final-score">0</div>
+        <div class="score-label" id="score-label">滑行距离</div>
+
+        <div class="instruction-box" id="instruction-ui">
+
+            <!-- 三格对比图：左歪 / 正 / 右歪 -->
+            <div class="tilt-panels">
+
+                <!-- 左歪 -->
+                <div class="tilt-panel">
+                    <svg width="90" height="110" viewBox="0 0 90 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g transform="translate(45,62) rotate(-22)">
+                            <rect x="-7" y="36" width="14" height="16" rx="3" fill="rgba(0,255,255,0.12)" stroke="#00ffff" stroke-width="1.5"/>
+                            <path d="M-32 52 Q-16 46 0 46 Q16 46 32 52" stroke="#00ffff" stroke-width="1.5" fill="rgba(0,255,255,0.05)"/>
+                            <ellipse cx="0" cy="0" rx="34" ry="40" fill="rgba(0,255,255,0.07)" stroke="#00ffff" stroke-width="2"/>
+                            <path d="M-34 -6 Q-36 -44 0 -46 Q36 -44 34 -6" fill="rgba(208,0,255,0.25)" stroke="#d000ff" stroke-width="1.5"/>
+                            <ellipse cx="-36" cy="3" rx="5" ry="9" fill="rgba(0,255,255,0.08)" stroke="#00ffff" stroke-width="1.5"/>
+                            <ellipse cx="36" cy="3" rx="5" ry="9" fill="rgba(0,255,255,0.08)" stroke="#00ffff" stroke-width="1.5"/>
+                            <circle cx="-13" cy="-10" r="5" fill="rgba(0,255,255,0.2)" stroke="#00ffff" stroke-width="1.5"/>
+                            <circle cx="-13" cy="-10" r="2.5" fill="#00ffff"/>
+                            <circle cx="13" cy="-10" r="5" fill="rgba(0,255,255,0.2)" stroke="#00ffff" stroke-width="1.5"/>
+                            <circle cx="13" cy="-10" r="2.5" fill="#00ffff"/>
+                            <path d="M-10 20 Q0 26 10 20" stroke="#d000ff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                    <div class="tilt-panel-label" style="color:#d000ff;">← 向左滑</div>
+                </div>
+
+                <!-- 分隔箭头 -->
+                <div style="color:rgba(255,255,255,0.2); font-size:28px; margin-bottom:24px;">/</div>
+
+                <!-- 正头 -->
+                <div class="tilt-panel">
+                    <svg width="90" height="110" viewBox="0 0 90 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g transform="translate(45,62)">
+                            <rect x="-7" y="36" width="14" height="16" rx="3" fill="rgba(0,255,255,0.12)" stroke="#00ffff" stroke-width="1.5"/>
+                            <path d="M-32 52 Q-16 46 0 46 Q16 46 32 52" stroke="#00ffff" stroke-width="1.5" fill="rgba(0,255,255,0.05)"/>
+                            <ellipse cx="0" cy="0" rx="34" ry="40" fill="rgba(0,255,255,0.07)" stroke="#00ffff" stroke-width="2"/>
+                            <path d="M-34 -6 Q-36 -44 0 -46 Q36 -44 34 -6" fill="rgba(208,0,255,0.25)" stroke="#d000ff" stroke-width="1.5"/>
+                            <ellipse cx="-36" cy="3" rx="5" ry="9" fill="rgba(0,255,255,0.08)" stroke="#00ffff" stroke-width="1.5"/>
+                            <ellipse cx="36" cy="3" rx="5" ry="9" fill="rgba(0,255,255,0.08)" stroke="#00ffff" stroke-width="1.5"/>
+                            <circle cx="-13" cy="-10" r="5" fill="rgba(0,255,255,0.2)" stroke="#00ffff" stroke-width="1.5"/>
+                            <circle cx="-13" cy="-10" r="2.5" fill="#00ffff"/>
+                            <circle cx="13" cy="-10" r="5" fill="rgba(0,255,255,0.2)" stroke="#00ffff" stroke-width="1.5"/>
+                            <circle cx="13" cy="-10" r="2.5" fill="#00ffff"/>
+                            <path d="M-10 20 Q0 26 10 20" stroke="#d000ff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                    <div class="tilt-panel-label" style="color:rgba(255,255,255,0.5);">直行</div>
+                </div>
+
+                <!-- 分隔 -->
+                <div style="color:rgba(255,255,255,0.2); font-size:28px; margin-bottom:24px;">/</div>
+
+                <!-- 右歪 -->
+                <div class="tilt-panel">
+                    <svg width="90" height="110" viewBox="0 0 90 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g transform="translate(45,62) rotate(22)">
+                            <rect x="-7" y="36" width="14" height="16" rx="3" fill="rgba(0,255,255,0.12)" stroke="#00ffff" stroke-width="1.5"/>
+                            <path d="M-32 52 Q-16 46 0 46 Q16 46 32 52" stroke="#00ffff" stroke-width="1.5" fill="rgba(0,255,255,0.05)"/>
+                            <ellipse cx="0" cy="0" rx="34" ry="40" fill="rgba(0,255,255,0.07)" stroke="#00ffff" stroke-width="2"/>
+                            <path d="M-34 -6 Q-36 -44 0 -46 Q36 -44 34 -6" fill="rgba(208,0,255,0.25)" stroke="#d000ff" stroke-width="1.5"/>
+                            <ellipse cx="-36" cy="3" rx="5" ry="9" fill="rgba(0,255,255,0.08)" stroke="#00ffff" stroke-width="1.5"/>
+                            <ellipse cx="36" cy="3" rx="5" ry="9" fill="rgba(0,255,255,0.08)" stroke="#00ffff" stroke-width="1.5"/>
+                            <circle cx="-13" cy="-10" r="5" fill="rgba(0,255,255,0.2)" stroke="#00ffff" stroke-width="1.5"/>
+                            <circle cx="-13" cy="-10" r="2.5" fill="#00ffff"/>
+                            <circle cx="13" cy="-10" r="5" fill="rgba(0,255,255,0.2)" stroke="#00ffff" stroke-width="1.5"/>
+                            <circle cx="13" cy="-10" r="2.5" fill="#00ffff"/>
+                            <path d="M-10 20 Q0 26 10 20" stroke="#d000ff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                    <div class="tilt-panel-label" style="color:#d000ff;">向右滑 →</div>
+                </div>
+
+            </div>
+
+            <!-- 说明文字 -->
+            <p style="color:#aaa; font-size:16px; line-height:1.7; margin:0;">
+                用<strong style="color:#d000ff;">头部倾斜</strong>控制方向，躲避迎面而来的<strong style="color:#00ffff;">霓虹立柱</strong>！
+            </p>
+
+        </div>
+
+        <button id="start-btn" class="btn-main" onclick="startGame()">开始滑行</button>
+    </div>
+</div>
+
+<script>
+    const videoElement = document.getElementById('input-video');
+    const canvasElement = document.getElementById('output-canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    
+    // UI Elements
+    const menuOverlay = document.getElementById('menu-overlay');
+    const menuTitle = document.getElementById('menu-title');
+    const instructionUI = document.getElementById('instruction-ui');
+    const finalScoreEl = document.getElementById('final-score');
+    const scoreLabelEl = document.getElementById('score-label');
+    const startBtn = document.getElementById('start-btn');
+    const scoreEl = document.getElementById('score');
+    const tiltBar = document.getElementById('tilt-bar');
+    const crashOverlay = document.getElementById('crash-overlay');
+    const homeBtn = document.querySelector('.home-btn');
+
+    canvasElement.width = 1280;
+    canvasElement.height = 720;
+
+    // 游戏状态
+    let isGameRunning = false;
+    let distance = 0;
+    let speed = 20; // 前进速度
+    let lateralSpeed = 0; // 横向速度
+    
+    // 玩家
+    let playerX = 0; // -1 (左) 到 1 (右), 0是中间
+    let playerTilt = 0; // 当前头部倾斜角度 (弧度)
+    
+    // 伪3D 透视参数
+    const FOV = 600; // 视场
+    const HORIZON_Y = 250; // 地平线高度
+    
+    // 障碍物
+    let obstacles = []; // {x, z, type}
+    
+    // 音频
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = new AudioContext();
+
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+        
+        if (type === 'crash') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.exponentialRampToValueAtTime(10, now + 0.5);
+            gainNode.gain.setValueAtTime(0.5, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        } else if (type === 'bgm_beat') {
+            // 简单的低音节奏
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(80, now);
+            osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.1);
+            gainNode.gain.setValueAtTime(0.2, now);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        }
+    }
+
+    class Obstacle {
+        constructor() {
+            // x: -2 到 2 (稍微宽于屏幕)
+            this.x = (Math.random() - 0.5) * 6; 
+            // z: 深度，从远到近
+            this.z = 2000; 
+            this.width = 100;
+            this.height = 400;
+            this.colorHue = Math.random() * 60 + 280; // 紫色到粉色区间
+        }
+        update() {
+            this.z -= speed;
+        }
+        draw(ctx) {
+            // 3D 投影公式
+            // scale = FOV / (FOV + z)
+            const scale = FOV / (FOV + this.z);
+            
+            // 玩家移动实际上是改变世界的相对X
+            // playerX * 1000 是为了把 -1~1 的范围映射到世界坐标
+            const relX = this.x * 500 - (playerX * 800); 
+            
+            const screenX = canvasElement.width / 2 + relX * scale;
+            const screenY = HORIZON_Y + 100 * scale; // 物体底部
+            
+            const renderW = this.width * scale;
+            const renderH = this.height * scale;
+            
+            // 简单的碰撞盒数据 (用于 updateGame 中的判定)
+            this.screenBox = {
+                x: screenX - renderW/2,
+                y: screenY - renderH,
+                w: renderW,
+                h: renderH,
+                scale: scale
+            };
+
+            // 绘制霓虹柱子
+            ctx.save();
+            ctx.globalAlpha = Math.min(1, scale * 1.5); // 远处透明
+            
+            // 柱体
+            ctx.fillStyle = `hsla(${this.colorHue}, 100%, 50%, 0.2)`;
+            ctx.strokeStyle = `hsl(${this.colorHue}, 100%, 70%)`;
+            ctx.lineWidth = 2;
+            
+            // 立体感 - 正面
+            const groundY = HORIZON_Y + 400 * scale; // 接地
+            
+            // 绘制一个梯形柱子
+            ctx.beginPath();
+            ctx.moveTo(screenX - renderW/2, groundY);
+            ctx.lineTo(screenX + renderW/2, groundY);
+            ctx.lineTo(screenX + renderW/2, groundY - renderH);
+            ctx.lineTo(screenX - renderW/2, groundY - renderH);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // 发光底座
+            ctx.beginPath();
+            ctx.ellipse(screenX, groundY, renderW, renderW/3, 0, 0, Math.PI*2);
+            ctx.fillStyle = `hsla(${this.colorHue}, 100%, 50%, 0.5)`;
+            ctx.fill();
+            
+            ctx.restore();
+        }
+    }
+
+    // === 地面网格绘制 ===
+    let gridOffsetZ = 0;
+    function drawGrid(ctx) {
+        gridOffsetZ = (gridOffsetZ + speed) % 200;
+        
+        ctx.save();
+        ctx.beginPath();
+        // 裁剪掉天空
+        ctx.rect(0, HORIZON_Y, canvasElement.width, canvasElement.height - HORIZON_Y);
+        ctx.clip();
+
+        // 地面渐变
+        let grad = ctx.createLinearGradient(0, HORIZON_Y, 0, canvasElement.height);
+        grad.addColorStop(0, "#000");
+        grad.addColorStop(1, "#240046");
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(208, 0, 255, 0.5)";
+        ctx.lineWidth = 2;
+
+        // 纵向线 (透视)
+        // 根据玩家X偏移
+        const shiftX = playerX * 800;
+        for (let x = -2000; x <= 2000; x += 200) {
+            let relX = x - shiftX;
+            // 投影远点
+            let scaleFar = FOV / (FOV + 2000);
+            let xFar = canvasElement.width/2 + relX * scaleFar;
+            
+            // 投影近点
+            let scaleNear = FOV / (FOV + 0);
+            let xNear = canvasElement.width/2 + relX * scaleNear;
+            
+            ctx.beginPath();
+            ctx.moveTo(xFar, HORIZON_Y);
+            ctx.lineTo(xNear, HORIZON_Y + 400 * scaleNear); // 延伸到屏幕底
+            ctx.stroke();
+        }
+
+        // 横向线 (移动)
+        for (let z = 0; z < 2000; z += 100) {
+            let actualZ = 2000 - z - gridOffsetZ;
+            if (actualZ < 0) actualZ += 2000;
+            
+            let scale = FOV / (FOV + actualZ);
+            let y = HORIZON_Y + 400 * scale; // 假设摄像机高度400
+            
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvasElement.width, y);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    // === 玩家飞船绘制 ===
+    function drawPlayer(ctx) {
+        ctx.save();
+        const cx = canvasElement.width / 2;
+        const cy = canvasElement.height - 100;
+        
+        // 随倾斜旋转
+        ctx.translate(cx, cy);
+        // playerTilt 是弧度，正数为右倾
+        ctx.rotate(playerTilt * 1.5); // 夸张一点旋转
+        
+        // 飞船主体 (三角形)
+        ctx.beginPath();
+        ctx.moveTo(0, -40);
+        ctx.lineTo(30, 40);
+        ctx.lineTo(0, 30); // 尾部凹陷
+        ctx.lineTo(-30, 40);
+        ctx.closePath();
+        
+        ctx.fillStyle = "#000";
+        ctx.strokeStyle = "#00ffff";
+        ctx.lineWidth = 3;
+        ctx.shadowColor = "#00ffff";
+        ctx.shadowBlur = 20;
+        ctx.fill();
+        ctx.stroke();
+        
+        // 引擎喷射
+        ctx.beginPath();
+        ctx.moveTo(-10, 35);
+        ctx.lineTo(0, 30 + Math.random() * 40 + speed); // 速度越快喷射越长
+        ctx.lineTo(10, 35);
+        ctx.fillStyle = "#fff";
+        ctx.shadowColor = "#00ffff";
+        ctx.fill();
+        
+        ctx.restore();
+    }
+
+    function spawnObstacle() {
+        if (!isGameRunning) return;
+        obstacles.push(new Obstacle());
+        // 速度越快生成越快
+        let spawnTime = 100000 / (speed * 10); 
+        if (spawnTime < 300) spawnTime = 300;
+        
+        setTimeout(spawnObstacle, spawnTime);
+    }
+
+    function updateGame() {
+        if (!isGameRunning) return;
+
+        distance += speed * 0.1;
+        scoreEl.innerText = Math.floor(distance);
+        
+        // 速度随距离增加
+        if (speed < 100) speed += 0.02;
+
+        // 根据倾斜改变玩家X
+        // playerTilt > 0 (右倾), playerX 增加
+        // 增加平滑度
+        lateralSpeed = playerTilt * 0.05; 
+        playerX += lateralSpeed;
+        
+        // 限制左右边界
+        if (playerX > 1.5) playerX = 1.5;
+        if (playerX < -1.5) playerX = -1.5;
+
+        // 更新障碍物 & 碰撞检测
+        // 玩家的碰撞判定区域在屏幕底部中心
+        // 我们只需要检测障碍物是否"撞脸" (scale 很大，且 screenX 接近 center)
+        
+        const playerHitBox = { x: canvasElement.width/2 - 20, width: 40 };
+
+        obstacles.forEach(obj => {
+            obj.update();
+            
+            // 碰撞检测
+            // 当物体足够近 (z < 100) 且 screenBox 与 player 重叠
+            if (obj.z < 100 && obj.z > -100) {
+                // 计算物体的屏幕X范围
+                const scale = FOV / (FOV + obj.z);
+                const relX = obj.x * 500 - (playerX * 800); 
+                const objScreenX = canvasElement.width / 2 + relX * scale;
+                const objW = obj.width * scale;
+                
+                // 简单的X轴重叠判定
+                if (Math.abs(objScreenX - canvasElement.width/2) < (objW/2 + 20)) {
+                    gameOver();
+                }
+            }
+        });
+        
+        obstacles = obstacles.filter(o => o.z > -FOV); // 移出视野后删除
+    }
+
+    function onResults(results) {
+        canvasCtx.save();
+        
+        // 1. 清屏 & 绘制背景
+        canvasCtx.fillStyle = '#050010';
+        canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+        
+        // 绘制远景山脉 (简单线条)
+        canvasCtx.strokeStyle = "#d000ff";
+        canvasCtx.lineWidth = 1;
+        canvasCtx.beginPath();
+        for(let i=0; i<canvasElement.width; i+=10) {
+            let h = Math.sin(i * 0.01 + distance * 0.001) * 50 + Math.random() * 5;
+            canvasCtx.lineTo(i, HORIZON_Y - h);
+        }
+        canvasCtx.stroke();
+
+        // 2. 绘制网格地面
+        drawGrid(canvasCtx);
+
+        // 3. 绘制障碍物 (从远到近排序，画家的算法)
+        obstacles.sort((a, b) => b.z - a.z);
+        obstacles.forEach(obj => obj.draw(canvasCtx));
+
+        // 4. 绘制玩家
+        drawPlayer(canvasCtx);
+
+        // 5. 头部追踪逻辑
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+            const landmarks = results.multiFaceLandmarks[0];
+            
+            // 眼睛关键点: 左眼(33), 右眼(263)
+            // 注意：由于 scaleX(-1)，视觉上的左边其实是 RightEye(263)
+            // 我们希望：头向右歪(视觉右) -> 玩家向右
+            // 视觉右 = 物理左 (用户真实左肩下沉)
+            // 让我们直接用Y差值。
+            
+            const leftEye = landmarks[33];
+            const rightEye = landmarks[263];
+            
+            // 计算倾斜角度
+            // 正常情况下，左眼和右眼Y应该差不多
+            // 如果 user 向右歪头 (Right Shoulder Down) -> RightEye.y > LeftEye.y ? 
+            // Mediapipe coordinates: y increases downwards.
+            
+            const dy = rightEye.y - leftEye.y;
+            const dx = rightEye.x - leftEye.x;
+            
+            // 计算角度 (弧度)
+            let angle = Math.atan2(dy, dx);
+            
+            // 归一化：水平时 angle 约为 0 (或 PI，取决于左右点顺序)
+            // 33(左)在左边，263(右)在右边。dx > 0.
+            // 如果向右歪头，右眼(263)变低(y变大)，dy > 0 -> angle > 0.
+            
+            // 平滑处理
+            const targetTilt = angle * 2.0; // 放大系数，让操控更灵敏
+            playerTilt = playerTilt + (targetTilt - playerTilt) * 0.2;
+            
+            // UI 反馈
+            // 将角度映射到 UI 条
+            // max tilt approx 0.5 rad
+            let barPos = (playerTilt / 0.5) * 50; // 0 -> 0%, 0.5 -> 50%
+            tiltBar.style.transform = `translateX(${barPos}px)`;
+        }
+        
+        // 游戏循环
+        if(isGameRunning) {
+            updateGame();
+        }
+
+        canvasCtx.restore();
+    }
+
+    function showMainMenu() {
+        menuOverlay.style.display = 'flex';
+        menuTitle.innerText = "霓虹滑行";
+        finalScoreEl.style.display = "none";
+        scoreLabelEl.style.display = "none";
+        instructionUI.style.display = "block";
+        startBtn.innerText = "开始滑行";
+        homeBtn.style.display = "none";
+    }
+
+    function startGame() {
+        menuOverlay.style.display = 'none';
+        isGameRunning = true;
+        distance = 0;
+        speed = 20;
+        playerX = 0;
+        playerTilt = 0;
+        obstacles = [];
+        scoreEl.innerText = "0";
+        crashOverlay.style.opacity = 0;
+        
+        spawnObstacle();
+        
+        // 简单的背景音乐节奏
+        setInterval(() => {
+            if(isGameRunning) playSound('bgm_beat');
+        }, 500);
+    }
+
+    function gameOver() {
+        isGameRunning = false;
+        playSound('crash');
+        
+        // 撞击特效
+        crashOverlay.style.transition = "none";
+        crashOverlay.style.opacity = 1;
+        setTimeout(() => {
+            crashOverlay.style.transition = "opacity 1s";
+            crashOverlay.style.opacity = 0;
+        }, 100);
+
+        menuTitle.innerText = "撞毁！";
+        instructionUI.style.display = "none";
+        finalScoreEl.innerText = Math.floor(distance) + "m";
+        finalScoreEl.style.display = "block";
+        scoreLabelEl.style.display = "block";
+        startBtn.innerText = "再次挑战";
+        homeBtn.style.display = "block";
+        menuOverlay.style.display = "flex";
+    }
+
+    function quitGame() {
+        isGameRunning = false;
+        showMainMenu();
+    }
+
+    const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+    faceMesh.setOptions({
+        maxNumFaces: 1,
+        refineLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+    faceMesh.onResults(onResults);
+
+    const camera = new Camera(videoElement, {
+        onFrame: async () => {
+            await faceMesh.send({image: videoElement});
+        },
+        width: 1280,
+        height: 720
+    });
+    camera.start();
+    
+    showMainMenu();
+
+</script>
+</body>
+</html>
