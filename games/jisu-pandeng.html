@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>极速攀登</title>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #050505; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+        #game-container {
+            position: relative; width: 1280px; height: 720px;
+            box-shadow: 0 0 100px rgba(0, 255, 136, 0.15); background: #000;
+            border-radius: 16px; overflow: hidden; border: 1px solid #222;
+        }
+        #input-video { display: none; }
+        #output-canvas { width: 100%; height: 100%; transform: scaleX(-1); }
+
+        /* UI 层 */
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column;
+            justify-content: space-between; padding: 30px; box-sizing: border-box;
+            z-index: 5;
+        }
+
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            width: 100%; pointer-events: auto;
+        }
+
+        .home-btn {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.8); border-radius: 50%; width: 50px; height: 50px;
+            font-size: 24px; cursor: pointer; transition: all 0.2s ease;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .home-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); color: #fff; border-color: #fff; }
+
+        .timer-display {
+            font-size: 56px; font-weight: bold; color: #fff;
+            text-shadow: 0 0 20px #00ff88; font-variant-numeric: tabular-nums;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* 仪表盘 */
+        .dashboard-container {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; width: 400px; height: 400px;
+        }
+        
+        .count-display {
+            font-size: 180px; font-weight: 900; color: #fff;
+            text-shadow: 0 0 40px rgba(0, 255, 128, 0.6);
+            z-index: 2; line-height: 1; margin-bottom: -10px;
+            font-style: italic;
+        }
+        .label-text {
+            font-size: 24px; color: #00ff88; letter-spacing: 8px; text-transform: uppercase;
+            z-index: 2; margin-top: 10px; opacity: 0.8;
+        }
+
+        /* 装饰圆环 */
+        .ring {
+            position: absolute; border-radius: 50%; border: 10px solid transparent;
+            transition: all 0.1s; pointer-events: none;
+        }
+        .ring-outer {
+            width: 380px; height: 380px;
+            border-left: 4px solid #00ff88; border-right: 4px solid #00ff88;
+            opacity: 0.3; animation: pulse-ring 2s infinite;
+        }
+        .ring-inner {
+            width: 340px; height: 340px;
+            border-top: 2px solid #fff; border-bottom: 2px solid #fff;
+            opacity: 0.2; animation: spin 8s linear infinite;
+        }
+        
+        @keyframes pulse-ring { 0% { transform: scale(1); opacity:0.2; } 50% { transform: scale(1.05); opacity:0.4;} 100% { transform: scale(1); opacity:0.2; } }
+        
+        .speed-gauge {
+            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+            width: 60%; text-align: center;
+        }
+        .speed-bar-container {
+            width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 10px;
+        }
+        .speed-bar-fill {
+            height: 100%; width: 0%; 
+            background: linear-gradient(90deg, #0984e3, #00ff88, #fdcb6e, #ff0055);
+            transition: width 0.1s ease-out; box-shadow: 0 0 20px #00ff88;
+        }
+        .speed-text { font-size: 16px; color: #888; letter-spacing: 4px; text-transform: uppercase; }
+
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92); z-index: 10;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 { 
+            font-size: 80px; color: #fff; margin-bottom: 30px; letter-spacing: 10px; 
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.5); font-style: italic;
+            background: linear-gradient(to bottom, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .instruction-box {
+            border: 1px solid rgba(255,255,255,0.15); padding: 40px 80px; border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            text-align: center; margin-bottom: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .btn-group { display: flex; gap: 30px; }
+        
+        .btn-main {
+            padding: 18px 60px; font-size: 26px; font-weight: bold;
+            background: #fff; color: #000; border: none; border-radius: 50px; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 40px rgba(255,255,255,0.3);
+        }
+        .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 60px rgba(255,255,255,0.5); }
+
+        .btn-secondary {
+            padding: 18px 50px; font-size: 26px; font-weight: bold;
+            background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.5); border-radius: 50px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: #fff; transform: scale(1.05); }
+
+        #final-score { font-size: 120px; color: #ffd700; margin-bottom: 0px; display: none; font-weight: 900; }
+        .score-label { font-size: 24px; color: #888; margin-bottom: 40px; display: none; letter-spacing: 2px; }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div id="game-container">
+    <video id="input-video"></video>
+    <canvas id="output-canvas"></canvas>
+
+    <div id="ui-layer">
+        <div class="top-bar">
+            <button class="home-btn" onclick="quitGame()" title="回到首页">🏠</button>
+            <div class="timer-display"><span id="time-left">60</span></div>
+        </div>
+
+        <div class="speed-gauge">
+            <div class="speed-text">CLIMB SPEED</div>
+            <div class="speed-bar-container">
+                <div class="speed-bar-fill" id="speed-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container" id="dashboard" style="opacity: 0.3;">
+        <div class="ring ring-outer" id="ring-outer"></div>
+        <div class="ring ring-inner" id="ring-inner"></div>
+        <div class="count-display" id="count-display">0</div>
+        <div class="label-text">METER</div>
+    </div>
+
+    <div class="overlay" id="menu-overlay">
+        <h1 id="menu-title">极速攀登</h1>
+        
+        <div id="final-score">0</div>
+        <div class="score-label" id="score-label">攀登高度 (米)</div>
+
+        <div class="instruction-box" id="instruction-ui">
+            <svg width="150" height="150" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:15px;">
+                
+                <line x1="20" y1="0" x2="20" y2="100" stroke="#333" stroke-width="1" />
+                <line x1="80" y1="0" x2="80" y2="100" stroke="#333" stroke-width="1" />
+                <line x1="20" y1="20" x2="80" y2="20" stroke="#333" stroke-width="1" />
+                <line x1="20" y1="50" x2="80" y2="50" stroke="#333" stroke-width="1" />
+                <line x1="20" y1="80" x2="80" y2="80" stroke="#333" stroke-width="1" />
+
+                <g transform="translate(20, 20)">
+                    <rect x="-8" y="0" width="16" height="14" rx="3" fill="white" />
+                    <line x1="-8" y1="2" x2="-12" y2="-4" stroke="white" stroke-width="3"/> 
+                    <line x1="-5" y1="0" x2="-6" y2="-12" stroke="white" stroke-width="3"/>
+                    <line x1="0" y1="0" x2="0" y2="-14" stroke="white" stroke-width="3"/>
+                    <line x1="5" y1="0" x2="6" y2="-12" stroke="white" stroke-width="3"/>
+                    <line x1="8" y1="2" x2="10" y2="-8" stroke="white" stroke-width="3"/>
+                </g>
+
+                <g transform="translate(80, 70)">
+                    <rect x="-8" y="0" width="16" height="14" rx="3" fill="white" fill-opacity="0.5"/>
+                    <line x1="8" y1="2" x2="12" y2="-4" stroke="white" stroke-width="3" stroke-opacity="0.5"/> 
+                    <line x1="5" y1="0" x2="6" y2="-12" stroke="white" stroke-width="3" stroke-opacity="0.5"/>
+                    <line x1="0" y1="0" x2="0" y2="-14" stroke="white" stroke-width="3" stroke-opacity="0.5"/>
+                    <line x1="-5" y1="0" x2="-6" y2="-12" stroke="white" stroke-width="3" stroke-opacity="0.5"/>
+                    <line x1="-8" y1="2" x2="-10" y2="-8" stroke="white" stroke-width="3" stroke-opacity="0.5"/>
+                </g>
+                
+                <path d="M 35 45 L 35 70" marker-end="url(#arrow)" stroke="#00ff88" stroke-width="3" />
+                <path d="M 65 45 L 65 20" marker-end="url(#arrow)" stroke="#ff0055" stroke-width="3" />
+
+                <defs>
+                    <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6" fill="white" stroke="none" />
+                    </marker>
+                </defs>
+            </svg>
+            
+            <p style="color:#ccc; font-size: 18px; line-height: 1.6; margin:0;">
+                双手张开五指<br>像爬梯子一样快速交替上下！
+            </p>
+            <p style="color:#00ff88; font-size: 15px; margin-top:15px; font-weight:600; letter-spacing:1px; opacity: 0.8;">
+                垂直运动识别更精准
+            </p>
+        </div>
+        
+        <div class="btn-group">
+            <button id="home-btn" class="btn-secondary" onclick="showMainMenu()" style="display:none;">回到首页</button>
+            <button id="start-btn" class="btn-main" onclick="startGame()">开始挑战</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const videoElement = document.getElementById('input-video');
+    const canvasElement = document.getElementById('output-canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    
+    // UI Refs
+    const menuOverlay = document.getElementById('menu-overlay');
+    const menuTitle = document.getElementById('menu-title');
+    const instructionUI = document.getElementById('instruction-ui');
+    const finalScoreEl = document.getElementById('final-score');
+    const scoreLabelEl = document.getElementById('score-label');
+    const startBtn = document.getElementById('start-btn');
+    const homeBtn = document.getElementById('home-btn');
+    const timeLeftEl = document.getElementById('time-left');
+    const countDisplay = document.getElementById('count-display');
+    const ringOuter = document.getElementById('ring-outer');
+    const ringInner = document.getElementById('ring-inner');
+    const speedBar = document.getElementById('speed-bar');
+    const dashboard = document.getElementById('dashboard');
+
+    canvasElement.width = 1280;
+    canvasElement.height = 720;
+
+    let isGameRunning = false;
+    let stepCount = 0; 
+    let timeLeft = 60;
+    let timerInterval = null;
+    
+    let handState = 'unknown'; 
+    const VERTICAL_THRESHOLD = 0.15; 
+    
+    let lastStepTime = 0;
+    let currentSpeed = 0; 
+    
+    // 特效相关
+    let particles = [];
+    let floatingTexts = [];
+    let screenFlash = 0;
+    let shakeIntensity = 0;
+    
+    // 背景滚动相关
+    let bgOffsetY = 0;
+
+    class FloatingText {
+        constructor(text, color, size) {
+            this.x = canvasElement.width / 2;
+            this.y = canvasElement.height / 2;
+            this.text = text;
+            this.color = color;
+            this.size = size;
+            this.life = 1.0;
+            this.vy = -4; // 向上浮动更快
+        }
+        update() {
+            this.y += this.vy;
+            this.life -= 0.02;
+        }
+        draw(ctx) {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, this.life);
+            ctx.translate(this.x, this.y);
+            ctx.scale(-1, 1);
+            ctx.fillStyle = this.color;
+            ctx.font = `900 ${this.size}px Arial`;
+            ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0,0,0,0.5)";
+            ctx.shadowBlur = 20;
+            ctx.fillText(this.text, 0, 0);
+            ctx.restore();
+        }
+    }
+
+    function initParticles(x, y, color, count = 15, speedMultiplier = 1) {
+        for(let i=0; i<count; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 20 * speedMultiplier,
+                vy: (Math.random() - 0.5) * 20 * speedMultiplier,
+                life: 1.0,
+                color: color,
+                size: Math.random() * 6 + 3
+            });
+        }
+    }
+
+    function updateParticles() {
+        for(let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.5; 
+            p.life -= 0.03; 
+            if(p.life <= 0) {
+                particles.splice(i, 1);
+            } else {
+                canvasCtx.globalAlpha = p.life;
+                canvasCtx.fillStyle = p.color;
+                canvasCtx.beginPath();
+                canvasCtx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                canvasCtx.fill();
+            }
+        }
+        canvasCtx.globalAlpha = 1.0;
+    }
+    
+    // === 新增：绘制动态攀登背景 ===
+    function drawClimbingBackground(ctx, width, height, speed) {
+        // 根据当前攀登速度计算背景滚动
+        // 速度越快，背景向下移动越快（产生向上的错觉）
+        let scrollSpeed = speed * 0.15; 
+        if(scrollSpeed < 0.5 && isGameRunning) scrollSpeed = 0.5; // 保持微动
+        if(!isGameRunning) scrollSpeed = 0;
+        
+        bgOffsetY = (bgOffsetY + scrollSpeed) % 200; // 200是网格间距
+
+        ctx.save();
+        // 绘制半透明黑色底，让背景不至于太抢眼，也能看清摄像头
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, width, height);
+
+        // 绘制赛博网格/梯子效果
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(0, 255, 136, 0.15)'; // 淡绿色霓虹
+        
+        // 垂直线 (透视感)
+        const centerX = width / 2;
+        const perspective = 0; 
+        
+        // 绘制横向条纹 (模拟梯子或楼层)
+        // 从 bgOffsetY 开始画，产生向下流动的效果
+        for(let y = bgOffsetY - 200; y < height; y += 100) {
+            // 距离中心的距离不同，透明度不同，制造深邃感
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+        }
+        
+        // 绘制两侧的“墙壁”线条，增强速度感
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.beginPath(); ctx.moveTo(width * 0.2, 0); ctx.lineTo(width * 0.2, height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(width * 0.8, 0); ctx.lineTo(width * 0.8, height); ctx.stroke();
+        
+        // 粒子流 (模拟高速运动的风)
+        if (speed > 50) {
+             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+             for(let i=0; i<10; i++) {
+                 let px = Math.random() * width;
+                 let py = (Date.now() / 2 + Math.random() * 1000) % height;
+                 ctx.fillRect(px, py, 2, 20 + speed * 0.1);
+             }
+        }
+
+        ctx.restore();
+    }
+
+    function triggerMilestoneEffect(number) {
+        screenFlash = 0.6;
+        shakeIntensity = 25;
+        floatingTexts.push(new FloatingText(`${number}m!`, "#00ff88", 180));
+        initParticles(canvasElement.width/2, canvasElement.height/2, "#00ff88", 60, 2.5);
+    }
+
+    function onResults(results) {
+        canvasCtx.save();
+        
+        if (shakeIntensity > 0) {
+            let dx = (Math.random() - 0.5) * shakeIntensity;
+            let dy = (Math.random() - 0.5) * shakeIntensity;
+            canvasCtx.translate(dx, dy);
+            shakeIntensity *= 0.9;
+            if(shakeIntensity < 1) shakeIntensity = 0;
+        }
+
+        // 1. 绘制摄像头画面
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        
+        // 2. 绘制动态背景 (覆盖在视频上，但半透明)
+        if(isGameRunning) {
+            drawClimbingBackground(canvasCtx, canvasElement.width, canvasElement.height, currentSpeed);
+        } else {
+            // 暂停时绘制静止的暗色背景
+            canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+        }
+
+        // 3. 闪光特效
+        if (screenFlash > 0.01) {
+            canvasCtx.fillStyle = `rgba(255, 255, 255, ${screenFlash})`;
+            canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+            screenFlash *= 0.85;
+        }
+
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length === 2 && isGameRunning) {
+            dashboard.style.opacity = 1;
+            
+            const hand1 = results.multiHandLandmarks[0];
+            const hand2 = results.multiHandLandmarks[1];
+
+            drawConnectors(canvasCtx, hand1, HAND_CONNECTIONS, {color: '#00ff88', lineWidth: 4});
+            drawLandmarks(canvasCtx, hand1, {color: '#fff', lineWidth: 2, radius: 4});
+            drawConnectors(canvasCtx, hand2, HAND_CONNECTIONS, {color: '#ff0055', lineWidth: 4});
+            drawLandmarks(canvasCtx, hand2, {color: '#fff', lineWidth: 2, radius: 4});
+
+            const wrist1 = hand1[0];
+            const wrist2 = hand2[0];
+            const y1 = wrist1.y; 
+            const y2 = wrist2.y;
+
+            const diff = y1 - y2; 
+            let newState = handState;
+
+            if (diff < -VERTICAL_THRESHOLD) {
+                newState = 'H1_UP';
+            } else if (diff > VERTICAL_THRESHOLD) {
+                newState = 'H2_UP';
+            }
+
+            const now = Date.now();
+            
+            if (newState !== handState && newState !== 'unknown') {
+                if (handState !== 'unknown') {
+                    stepCount++;
+                    updateDashboard(stepCount);
+                    
+                    const centerX = (wrist1.x + wrist2.x) / 2 * canvasElement.width;
+                    const centerY = (wrist1.y + wrist2.y) / 2 * canvasElement.height;
+
+                    if (stepCount % 10 === 0) {
+                        triggerMilestoneEffect(stepCount);
+                    } else {
+                        initParticles(centerX, centerY, stepCount % 2 === 0 ? '#00ff88' : '#ff0055', 8, 0.8);
+                    }
+
+                    const deltaMs = now - lastStepTime;
+                    if (deltaMs > 0) {
+                        let instantSpeed = 60000 / deltaMs;
+                        currentSpeed = currentSpeed * 0.7 + instantSpeed * 0.3;
+                    }
+                    lastStepTime = now;
+                }
+                handState = newState;
+            }
+
+        } else if (isGameRunning) {
+            dashboard.style.opacity = 0.3;
+            currentSpeed *= 0.92;
+        }
+
+        updateParticles();
+        
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            floatingTexts[i].update();
+            floatingTexts[i].draw(canvasCtx);
+            if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+        }
+        
+        if(isGameRunning) {
+            if (Date.now() - lastStepTime > 500) {
+                currentSpeed *= 0.95;
+            }
+            
+            const displaySpeed = Math.min(100, currentSpeed * 0.5); 
+            speedBar.style.width = displaySpeed + '%';
+            
+            if(displaySpeed > 80) {
+                speedBar.style.background = 'linear-gradient(90deg, #ff0055, #ffcc00)';
+                speedBar.style.boxShadow = '0 0 30px #ff0055';
+            } else {
+                speedBar.style.background = 'linear-gradient(90deg, #0984e3, #00ff88)';
+                speedBar.style.boxShadow = '0 0 20px #00ff88';
+            }
+        }
+
+        canvasCtx.restore();
+    }
+    
+    function updateDashboard(count) {
+        countDisplay.innerText = count;
+        if (count % 10 !== 0) {
+            countDisplay.style.transform = "scale(1.15)";
+            setTimeout(() => countDisplay.style.transform = "scale(1)", 80);
+        }
+    }
+
+    function showMainMenu() {
+        menuOverlay.style.display = 'flex';
+        menuTitle.innerText = "极速攀登";
+        finalScoreEl.style.display = "none";
+        scoreLabelEl.style.display = "none";
+        instructionUI.style.display = "block";
+        
+        startBtn.innerText = "开始攀登";
+        homeBtn.style.display = "none";
+        
+        stepCount = 0;
+        countDisplay.innerText = "0";
+        speedBar.style.width = "0%";
+        timeLeftEl.innerText = "60";
+    }
+
+    function startGame() {
+        menuOverlay.style.display = 'none';
+        
+        stepCount = 0;
+        timeLeft = 60;
+        currentSpeed = 0;
+        lastStepTime = Date.now();
+        handState = 'unknown';
+        particles = [];
+        floatingTexts = [];
+        screenFlash = 0;
+        bgOffsetY = 0;
+        
+        countDisplay.innerText = '0';
+        timeLeftEl.innerText = timeLeft;
+        isGameRunning = true;
+
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timeLeftEl.innerText = timeLeft;
+            if (timeLeft <= 10) timeLeftEl.style.color = '#ff0055';
+            else timeLeftEl.style.color = '#fff';
+            
+            if (timeLeft <= 0) {
+                gameOver();
+            }
+        }, 1000);
+    }
+
+    function gameOver() {
+        isGameRunning = false;
+        clearInterval(timerInterval);
+        
+        menuTitle.innerText = "挑战结束！";
+        instructionUI.style.display = "none";
+        
+        finalScoreEl.innerText = stepCount;
+        finalScoreEl.style.display = "block";
+        scoreLabelEl.style.display = "block";
+        
+        startBtn.innerText = "再次挑战";
+        homeBtn.style.display = "block";
+        menuOverlay.style.display = "flex";
+    }
+
+    function quitGame() {
+        isGameRunning = false;
+        clearInterval(timerInterval);
+        showMainMenu();
+    }
+
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1, // 性能优先
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+    hands.onResults(onResults);
+
+    const camera = new Camera(videoElement, {
+        onFrame: async () => {
+            await hands.send({image: videoElement});
+        },
+        width: 1280,
+        height: 720
+    });
+    camera.start();
+    
+    showMainMenu();
+
+</script>
+</body>
+</html>
