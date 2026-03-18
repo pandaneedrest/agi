@@ -209,7 +209,7 @@ function createCardEl(section) {
 
   card.innerHTML = `
     <div class="card-header">
-      <span class="card-badge" style="background:${badgeBg};color:${info.color}">${info.title}</span>
+      <span class="card-dot" style="background:${info.color}"></span>
       <input class="card-title-input" type="text" value="${escapeAttr(section.title)}" placeholder="模块标题">
       <button class="card-delete-btn" title="删除此模块">×</button>
         </div>
