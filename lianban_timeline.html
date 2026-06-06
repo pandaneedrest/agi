@@ -38,7 +38,6 @@
     .hd { order: 0; }
     .timeline-section { order: 1; }
     .core-section { order: 2; }
-    .foot { order: 3; }
 
     /* ── HEADER ── */
     .hd {
@@ -147,6 +146,7 @@
       background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
       padding: 10px 14px; font-size: 12px; color: var(--text-2); line-height: 1.7; min-height: 42px;
     }
+    .insight:empty { display: none; }
     .insight strong { color: var(--text); }
     .insight .tk {
       display: inline-block; margin: 2px 4px 2px 0;
@@ -159,7 +159,7 @@
     /* ── CORE PANEL ── */
     .core-panel { margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--panel); }
     .core-head {
-      display: grid; grid-template-columns: 1fr minmax(220px,290px); gap: 18px;
+      display: grid; grid-template-columns: 1fr; gap: 18px;
       padding: 18px 20px; background: #181817; border-bottom: 1px solid var(--border); align-items: stretch;
     }
     .core-kicker { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--blue); margin-bottom: 5px; }
@@ -168,14 +168,6 @@
     .core-stats { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; }
     .core-stat { display: inline-flex; align-items: baseline; gap: 4px; font-size: 11px; color: var(--text-3); }
     .core-stat strong { font-family: var(--mono); font-size: 17px; font-weight: 500; color: var(--text); letter-spacing: -.5px; }
-    .core-focus {
-      font-size: 12px; color: var(--text-2);
-      border-left: 2px solid var(--green); background: rgba(90,201,166,.12);
-      padding: 10px 12px; line-height: 1.6; min-height: 72px; border-radius: 0 5px 5px 0;
-    }
-    .core-focus-label { font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--green); margin-bottom: 5px; }
-    .core-focus strong { color: var(--text); }
-
     /* ── TABLES ── */
     .core-tbl-wrap { overflow-x: auto; max-height: 500px; overflow-y: auto; }
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
@@ -220,8 +212,6 @@
     .tbl-wrap td:nth-child(2) { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
     .tbl-wrap td:nth-child(5) { font-family: var(--mono); color: var(--amber); font-weight: 500; }
     .tbl-wrap td:nth-child(6) { font-family: var(--mono); color: var(--text-3); }
-
-    .foot { margin-top: 12px; color: var(--text-3); font-size: 11px; line-height: 1.8; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
 
     .brief-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 12px 0 18px; }
     .brief-panel {
@@ -355,10 +345,6 @@
           <div id="core-summary" class="core-meta"></div>
           <div id="core-stats" class="core-stats"></div>
         </div>
-        <div class="core-focus">
-          <div class="core-focus-label">周期状态口径</div>
-          <span style="color:#8d97aa">板型标签、开板次数和换手字段来自 mac-tushare/limit_list_ths；连续板数以 limit_step 为准。股票题材统一来自开盘啦 kpl_concept，并以 kpl_concept_cons 关联当日涨停股。</span>
-        </div>
       </div>
       <div class="core-tbl-wrap">
         <table class="core-table">
@@ -388,7 +374,6 @@
         <span class="key"><span class="swatch" style="background:#3f78b7"></span>震荡 B=2-3</span>
         <span class="key"><span class="swatch" style="background:#5b7f31"></span>冰点 B≤1</span>
         <span class="key"><span class="swatch" style="background:#4998f4;height:4px"></span>MA3</span>
-        <span class="breadth-note">剔除ST/退市博弈 · 识别出3个完整周期 · 平均周期约17个交易日 · 当前处于 Cycle 4 震荡确认期</span>
       </div>
     </div>
     <div class="ctrl-bar">
@@ -442,10 +427,8 @@
       <span class="key"><span class="swatch" style="background:transparent;border:2px dashed #5ac9a6"></span>T天N板</span>
       <span class="key"><span class="swatch" style="background:#5ac9a6"></span>今仍连板</span>
     </div>
-    <div id="date-insight" class="insight">未选择日期 — 点击图表任意列</div>
+    <div id="date-insight" class="insight"></div>
   </section>
-
-  <div class="foot">取数逻辑：连板周期甘特图来自 mac-tushare/TuShare limit_step，取 nums=2..11；同一轮连板只保留最高板数，已经晋级到3板以上的周期不重复展示二板阶段。B值宽度仍取 nums=3..11，剔除名称含 ST 后按 trade_date 计数，包含3板；当前连板用 2026-06-04 limit_step 选出当日3板+，用 daily 计算 6/2→6/4 三个交易日成交额趋势；板型、开板次数与换手使用 6/4 limit_list_ths 同字段口径校准；周期状态和 T天N板亦按该榜单 tag 识别，仅保留 T≤10、N≥2 且 T>N。6/4 kpl_concept 主表暂不可用，最强题材用开盘啦 kpl_concept_cons 与当日涨停池交集按涨停数量优先、成交额次优识别，并以同一成分表关联 daily 成交额生成核心股池；不使用其他题材接口替代。此图用于复盘市场连板结构，不构成投资建议。</div>
 
 </main>
 <script>
@@ -1312,7 +1295,7 @@ function isWeekday(day){
 }
 
 function renderInsight(list){
-  if(!selectedDate){insightEl.textContent="未选择日期 — 点击图表任意列";return;}
+  if(!selectedDate){insightEl.textContent="";return;}
   const starters=list.filter(s=>!s.isTnb&&s.start===selectedDate);
   const theme=dailyThemeModes[currentThemeMode][selectedDate];
   const thText=theme?.amount
