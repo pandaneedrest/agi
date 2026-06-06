@@ -323,20 +323,20 @@
     </div>
   <div class="brief-grid">
     <div class="brief-panel">
-      <div class="brief-title">当前连板（6/4收盘）+ 三日成交量分析 <span class="brief-tag hot">6/5复盘参考</span></div>
+      <div id="current-analysis-title" class="brief-title">当前连板（6/4收盘）+ 三日成交量分析 <span class="brief-tag hot">6/5复盘参考</span></div>
       <table class="brief-table">
         <thead><tr><th>股票</th><th>3日成交额趋势</th><th>板型</th><th>炸板</th><th>6/5建议</th></tr></thead>
-        <tbody>
+        <tbody id="current-analysis-body">
           <tr><td><b>红星发展</b><br><span class="muted">AI硬件 / MLCC上游</span></td><td><span class="sparkline">11.37→5.52→<span class="rednote">32.27亿↑</span><span class="sparkbar"><i style="width:100%;background:#b9403d"></i></span></span></td><td><span class="plate-chip hot">8天6板</span></td><td><span class="plate-chip low">77次</span></td><td><span class="advice warn">谨慎</span><br><span class="muted">核心辨识度最强但剧烈放量，重点看分歧承接</span></td></tr>
           <tr><td><b>大有能源</b><br><span class="muted">煤炭 / 国企改革</span></td><td><span class="sparkline">1.53→6.36→<span class="greennote">1.96亿↓</span><span class="sparkbar"><i style="width:6%;background:#5ac9a6"></i></span></span></td><td><span class="plate-chip hot">4连板</span></td><td><span class="plate-chip ok">0次</span></td><td><span class="advice good">可关注</span><br><span class="muted">一字晋级且量能回落，等开板确认强度</span></td></tr>
           <tr><td><b>天洋新材</b><br><span class="muted">电子胶 / 光模块</span></td><td><span class="sparkline">3.43→1.01→<span class="rednote">8.08亿↑</span><span class="sparkbar"><i style="width:25%;background:#b9403d"></i></span></span></td><td><span class="plate-chip hot">4连板</span></td><td><span class="plate-chip low">4次</span></td><td><span class="advice warn">谨慎</span><br><span class="muted">换手放大后晋级，关注材料分支延续性</span></td></tr>
           <tr><td><b>鑫科材料</b><br><span class="muted">AI硬件 / 铜材</span></td><td><span class="sparkline">8.24→2.48→<span class="rednote">29.59亿↑</span><span class="sparkbar"><i style="width:92%;background:#b9403d"></i></span></span></td><td><span class="plate-chip hot">3连板</span></td><td><span class="plate-chip low">9次</span></td><td><span class="advice warn">谨慎</span><br><span class="muted">高换手放量三板，和红星同属AI硬件分歧点</span></td></tr>
         </tbody>
       </table>
-      <div class="candidate-title">2板候选（6/5潜在三板）</div>
+      <div id="candidate-title" class="candidate-title">2板候选（6/5潜在三板）</div>
       <table class="brief-table">
         <thead><tr><th>股票</th><th>换手</th><th>炸板</th><th>封板时间</th><th>质量</th></tr></thead>
-        <tbody>
+        <tbody id="candidate-body">
           <tr><td><b>豫能控股</b> <span class="bluenote">电力</span></td><td>13.51%</td><td><span class="rednote">1次</span></td><td>10:54回封</td><td><span class="plate-chip ok">高</span>电力分支二板，观察能否带动板块回流</td></tr>
           <tr><td><b>华源控股</b> <span class="muted">机器人 / 包装</span></td><td>21.40%</td><td><span class="rednote">4次</span></td><td>15:00回封</td><td><span class="plate-chip low">中</span>尾盘高换手二板，次日需主动转强</td></tr>
           <tr><td><b>瑞贝卡</b> <span class="muted">消费 / 外贸</span></td><td>8.58%</td><td><span class="rednote">2次</span></td><td>09:42回封</td><td><span class="plate-chip ok">高</span>早盘二板，题材独立性较强</td></tr>
@@ -449,12 +449,12 @@
 
 </main>
 <script>
-const tradingDays = [
+let tradingDays = [
   "20260417","20260420","20260421","20260422","20260423","20260424","20260427","20260428",
   "20260429","20260430","20260506","20260507","20260508","20260511","20260512","20260513",
   "20260514","20260515","20260518","20260519","20260520","20260521","20260522","20260525","20260526","20260527","20260528","20260529","20260601","20260602","20260603","20260604"
 ];
-const dayIndex = Object.fromEntries(tradingDays.map((d,i)=>[d,i]));
+let dayIndex = Object.fromEntries(tradingDays.map((d,i)=>[d,i]));
 const threeBoardSegments = [
   ["*ST春天","600381.SH","20260428","20260515",11],
   ["*ST中迪","000609.SZ","20260421","20260507",10],
@@ -822,7 +822,7 @@ ST云动|000903.SZ|20260529|20260601
   const[name,code,start,end]=row.split("|");
   return{id:threeBoardSegments.length+i+1,name,code,start,end,maxBoards:2,days:dayIndex[end]-dayIndex[start]+1,isST:/ST/.test(name)};
 });
-const segments=[...threeBoardSegments,...twoBoardSegments];
+let segments=[...threeBoardSegments,...twoBoardSegments];
 const latestStepDate="20260604";
 const latestStepRows=[
   ["*ST威领","002667.SZ",4],["*ST瑞茂","600180.SH",4],["红星发展","600367.SH",4],
@@ -852,7 +852,7 @@ latestStepRows.forEach(([name,code,maxBoards])=>{
 
 const fmt=d=>`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6)}`;
 const barColor=n=>n>=8?"#e84a4a":n>=6?"#f19978":n>=4?"#83b5e9":n>=3?"#b9b8b2":"#718291";
-const dailyThemeModes={
+let dailyThemeModes={
   "amount":{
     "20260417":{"name":"商业航天","code":"000226.KP","amount":25353770105,"count":10,"limitCount":74,"kplLimitCount":9},
     "20260420":{"name":"商业航天","code":"000226.KP","amount":38468661745,"count":17,"limitCount":90,"kplLimitCount":14},
@@ -944,8 +944,8 @@ const themeColor=name=>themeBg[name]||themePalette[[...name].reduce((s,c)=>s+c.c
 const fmtAmt=v=>v==null?"待补充":`${(v/1e8).toFixed(1)}亿`;
 const themeShort=name=>name.length>7?`${name.slice(0,7)}…`:name;
 const modeLabel=m=>m==="count"?"涨停数量口径":"涨停成交额口径";
-const latestDate=tradingDays[tradingDays.length-1];
-const tnbSegments=[
+let latestDate=tradingDays[tradingDays.length-1];
+let tnbSegments=[
   ["红星发展","600367.SH",8,6],
   ["金时科技","002951.SZ",9,5],
   ["太极实业","600667.SH",3,2],
@@ -959,7 +959,7 @@ const tnbSegments=[
     maxBoards:nBoards,tDays,days:tDays,isST:false,isTnb:true
   };
 }).filter(s=>s.tDays>s.maxBoards);
-const latestCoreThemeStocks={
+let latestCoreThemeStocks={
   "000229.KP":[
     {name:"华能蒙电",code:"600863.SH",amount:4214506686,pctChg:9.94,start:"",end:""},
     {name:"华能国际",code:"600011.SH",amount:3878787080,pctChg:10.05,start:"",end:""},
@@ -993,20 +993,22 @@ const latestCoreThemeStocks={
     {name:"祥和实业",code:"603500.SH",amount:140377890,pctChg:9.9901,start:"",end:""}
   ]
 };
-const breadthValues = [5,5,4,2,4,2,3,3,2,4,6,3,5,7,7,6,5,4,5,5,7,2,4,2,4,3,4,4,3,2,5,4];
-const dataLogic = {
+let breadthValues = [5,5,4,2,4,2,3,3,2,4,6,3,5,7,7,6,5,4,5,5,7,2,4,2,4,3,4,4,3,2,5,4];
+let dataLogic = {
   breadth: "limit_step(start_date=20260417,end_date=20260604,nums=3..11) -> filter name not contains ST and nums>=3 -> group by trade_date count",
   cycles: "limit_step(20260304..20260604) computes B peak/trough; theme API aggregates active themes per cycle",
   current: "limit_step(trade_date=20260604,nums>=3) selects current 3-board-plus stocks; daily computes 20260602..20260604 amount trend; limit_list_ths calibrates status/open metrics",
   theme: "kpl_concept is unavailable on 20260604; kpl_concept_cons(trade_date=20260604) intersects limit_list_ths -> AI硬件 by limit-up count, joins daily amount"
 };
-const latestStatusMap={
+let latestStatusMap={
   "000725.SZ":"首板","002491.SZ":"首板","000733.SZ":"首板","002353.SZ":"首板",
   "002484.SZ":"首板","600367.SH":"8天6板","600255.SH":"3天3板","603920.SH":"首板",
   "300726.SZ":"首板","600226.SH":"首板","600353.SH":"首板","002585.SZ":"首板",
   "002733.SZ":"首板","002951.SZ":"9天5板","603950.SH":"首板","605060.SH":"首板",
   "603500.SH":"首板"
 };
+let dailyLimitStocks = {};
+let tradeCalendar = {};
 
 const svgEl=document.getElementById("timeline");
 const breadthEl=document.getElementById("breadthChart");
@@ -1015,7 +1017,118 @@ const coreTitleEl=document.getElementById("core-title");
 const coreSummaryEl=document.getElementById("core-summary");
 const coreStatsEl=document.getElementById("core-stats");
 const coreRowsEl=document.getElementById("core-rows");
+const currentAnalysisTitleEl=document.getElementById("current-analysis-title");
+const currentAnalysisBodyEl=document.getElementById("current-analysis-body");
+const candidateTitleEl=document.getElementById("candidate-title");
+const candidateBodyEl=document.getElementById("candidate-body");
+const DEFAULT_CLOUD_DATA_URL="";
+const CLOUD_DATA_URL=new URLSearchParams(location.search).get("data")||window.LIANBAN_DATA_URL||DEFAULT_CLOUD_DATA_URL;
 let activeFilters=new Set(["nonst","three"]),currentThemeMode="count",currentSort="time",currentTnbMode="show",selectedDate=null;
+
+function escapeHtml(value){
+  return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+}
+
+function normalizeSegment(row,index){
+  const [name,code,start,end,maxBoards]=row;
+  return {
+    id:index+1,name,code,start,end,maxBoards:Number(maxBoards)||0,
+    days:(dayIndex[end]??0)-(dayIndex[start]??0)+1,
+    isST:/ST/i.test(name||"")
+  };
+}
+
+function latestSegmentForCode(code){
+  return segments
+    .filter(s=>s.code===code&&!s.isTnb)
+    .sort((a,b)=>(dayIndex[b.end]??-1)-(dayIndex[a.end]??-1)||b.maxBoards-a.maxBoards)[0];
+}
+
+function decorateCoreStocks(stocks){
+  return (stocks||[]).map(stock=>{
+    const segment=latestSegmentForCode(stock.code);
+    return Object.assign({},stock,{
+      amount:Number(stock.amount)||0,
+      pctChg:Number(stock.pctChg??stock.pct_chg)||0,
+      start:stock.start||segment?.start||"",
+      end:stock.end||segment?.end||""
+    });
+  }).sort((a,b)=>b.amount-a.amount||a.name.localeCompare(b.name,"zh-CN"));
+}
+
+function buildStatusMapFromDailyLimit(dayStocks){
+  return (dayStocks||[]).reduce((map,item)=>{
+    const label=String(item.tnbLabel||"").trim();
+    if(label) map[item.code]=label;
+    else if(Number(item.boards)>=2) map[item.code]=`${Number(item.boards)}连板`;
+    return map;
+  },{});
+}
+
+function lastAmount(values){
+  const arr=(values||[]).map(v=>Number(v)||0);
+  return arr.length?arr[arr.length-1]:0;
+}
+
+function deriveCoreThemeStocks(theme){
+  if(!theme?.code)return [];
+  return (dailyLimitStocks[latestDate]||[])
+    .filter(item=>(item.themes||[]).includes(theme.name))
+    .map(item=>({
+      name:item.name,code:item.code,amount:lastAmount(item.amountTrend),pctChg:0,
+      start:latestSegmentForCode(item.code)?.start||"",
+      end:latestSegmentForCode(item.code)?.end||""
+    }))
+    .sort((a,b)=>b.amount-a.amount||a.name.localeCompare(b.name,"zh-CN"));
+}
+
+function applyCloudTimelineData(source){
+  if(!source||!Array.isArray(source.tradingDays)||!Array.isArray(source.segments)||!Array.isArray(source.breadthValues)||!source.dailyThemeModes){
+    throw new Error("Invalid cloud timeline snapshot.");
+  }
+  tradingDays=source.tradingDays.slice();
+  dayIndex=Object.fromEntries(tradingDays.map((d,i)=>[d,i]));
+  latestDate=source.latestDate||tradingDays[tradingDays.length-1];
+  segments=source.segments.map(normalizeSegment);
+  breadthValues=source.breadthValues.slice();
+  dailyThemeModes=Object.assign({amount:{},count:{}},source.dailyThemeModes||{});
+  dailyLimitStocks=Object.assign({},source.dailyLimitStocks||{});
+  tradeCalendar=Object.assign({},source.tradeCalendar||{});
+  latestStatusMap=buildStatusMapFromDailyLimit(dailyLimitStocks[latestDate]);
+  tnbSegments=(source.tnbSegments||[]).map(([name,code,tDays,nBoards],i)=>{
+    const endIdx=dayIndex[latestDate]??tradingDays.length-1;
+    const start=tradingDays[Math.max(0,endIdx-Number(tDays)+1)];
+    return {
+      id:`tnb-${i+1}`,name:`${name} · ${tDays}天${nBoards}板`,rawName:name,code,start,end:latestDate,
+      maxBoards:Number(nBoards)||0,tDays:Number(tDays)||0,days:Number(tDays)||0,isST:/ST/i.test(name||""),isTnb:true
+    };
+  }).filter(s=>s.tDays>s.maxBoards&&s.maxBoards>=2&&s.tDays<=10&&s.start);
+  latestCoreThemeStocks=Object.fromEntries(Object.entries(source.latestCoreThemeStocks||{}).map(([code,stocks])=>[
+    code,decorateCoreStocks(stocks)
+  ]));
+  ["count","amount"].forEach(mode=>{
+    const theme=dailyThemeModes[mode]?.[latestDate];
+    if(theme?.code&&!latestCoreThemeStocks[theme.code]){
+      latestCoreThemeStocks[theme.code]=deriveCoreThemeStocks(theme);
+    }
+  });
+  dataLogic=Object.assign({},dataLogic,source.dataLogic||{});
+  selectedDate=null;
+}
+
+async function loadCloudTimelineData(){
+  if(!CLOUD_DATA_URL)return;
+  try{
+    const response=await fetch(CLOUD_DATA_URL,{cache:"no-store"});
+    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    const json=await response.json();
+    applyCloudTimelineData(json.data||json);
+    renderBreadthChart();
+    render();
+  }catch(error){
+    console.warn("Unable to load cloud timeline data, using embedded snapshot:",error);
+  }
+}
 
 function el(tag,attrs,parent=svgEl){
   const n=document.createElementNS("http://www.w3.org/2000/svg",tag);
@@ -1104,6 +1217,98 @@ function renderCorePool(){
     const stCell=document.createElement("td");stCell.innerHTML=`<span class="status-pill ${st.cls}">${st.text}</span>`;tr.appendChild(stCell);
     coreRowsEl.appendChild(tr);
   });
+}
+
+function amountTrendHtml(values){
+  const amounts=(values||[]).map(v=>Number(v)||0);
+  while(amounts.length<3)amounts.unshift(0);
+  const current=amounts[amounts.length-1]||0;
+  const previous=amounts[amounts.length-2]||0;
+  const rising=current>=previous;
+  const max=Math.max(...amounts,1);
+  const prefix=amounts.slice(0,-1).map(v=>(v/1e8).toFixed(2)).join("→");
+  const cls=rising?"rednote":"greennote";
+  const arrow=rising?"↑":"↓";
+  const color=rising?"#b9403d":"#5ac9a6";
+  return `<span class="sparkline">${prefix}→<span class="${cls}">${(current/1e8).toFixed(2)}亿${arrow}</span><span class="sparkbar"><i style="width:${Math.max(6,Math.round(current/max*100))}%;background:${color}"></i></span></span>`;
+}
+
+function boardLabel(item){
+  const label=String(item.tnbLabel||"").trim();
+  if(label)return label;
+  return `${Number(item.boards)||0}连板`;
+}
+
+function adviceFor(item){
+  const boards=Number(item.boards)||0;
+  const openCount=Number(item.openCount)||0;
+  const amounts=(item.amountTrend||[]).map(v=>Number(v)||0);
+  const current=amounts[amounts.length-1]||0;
+  const previous=amounts[amounts.length-2]||0;
+  if(boards>=5||openCount>=8||current>previous*2.2)return ["谨慎","warn","高位或放量分歧，重点看承接和封单质量"];
+  if(openCount===0&&current<=previous*1.3)return ["可关注","good","封板质量较稳，次日观察主动性和题材带动"];
+  return ["观察","warn","换手晋级，关注竞价强度和分时承接"];
+}
+
+function qualityFor(item){
+  const openCount=Number(item.openCount)||0;
+  const turnover=Number(item.turnoverRate)||0;
+  if(openCount===0&&turnover<10)return ["高","ok"];
+  if(openCount<=2&&turnover<18)return ["中高","ok"];
+  if(openCount<=5)return ["中","low"];
+  return ["低","low"];
+}
+
+function themeLine(item){
+  const themes=(item.themes||[]).filter(Boolean).slice(0,2).join(" / ");
+  return themes||item.status||"题材待补充";
+}
+
+function renderCurrentAnalysis(){
+  const rows=(dailyLimitStocks[latestDate]||[]).slice();
+  const currentRows=rows.filter(item=>Number(item.boards)>=3).sort((a,b)=>Number(b.boards)-Number(a.boards)||lastAmount(b.amountTrend)-lastAmount(a.amountTrend));
+  const candidates=rows.filter(item=>Number(item.boards)===2).sort((a,b)=>Number(a.openCount)-Number(b.openCount)||String(a.closeTime||"").localeCompare(String(b.closeTime||"")));
+  const nextDayLabel=nextReviewLabel(latestDate);
+  currentAnalysisTitleEl.innerHTML=`当前连板（${shortDay(latestDate)}收盘）+ 三日成交量分析 <span class="brief-tag hot">${nextDayLabel}复盘参考</span>`;
+  candidateTitleEl.textContent=`2板候选（${nextDayLabel}潜在三板）`;
+  if(currentRows.length){
+    currentAnalysisBodyEl.innerHTML=currentRows.map(item=>{
+      const [label,cls,note]=adviceFor(item);
+      return `<tr><td><b>${escapeHtml(item.name)}</b><br><span class="muted">${escapeHtml(themeLine(item))}</span></td><td>${amountTrendHtml(item.amountTrend)}</td><td><span class="plate-chip hot">${escapeHtml(boardLabel(item))}</span></td><td><span class="plate-chip ${Number(item.openCount)===0?"ok":"low"}">${Number(item.openCount)||0}次</span></td><td><span class="advice ${cls}">${label}</span><br><span class="muted">${escapeHtml(note)}</span></td></tr>`;
+    }).join("");
+  }else{
+    currentAnalysisBodyEl.innerHTML=`<tr><td colspan="5" class="muted">云端快照暂无当日3板及以上连板明细。</td></tr>`;
+  }
+  candidateBodyEl.innerHTML=candidates.length?candidates.map(item=>{
+    const [quality,cls]=qualityFor(item);
+    return `<tr><td><b>${escapeHtml(item.name)}</b> <span class="bluenote">${escapeHtml(themeLine(item).split(" / ")[0]||"")}</span></td><td>${(Number(item.turnoverRate)||0).toFixed(2)}%</td><td><span class="rednote">${Number(item.openCount)||0}次</span></td><td>${escapeHtml(item.closeLabel||item.closeTime||"--:--")}</td><td><span class="plate-chip ${cls}">${quality}</span>${escapeHtml(item.limitReason||"观察次日晋级强度")}</td></tr>`;
+  }).join(""):`<tr><td colspan="5" class="muted">云端快照暂无二板候选。</td></tr>`;
+}
+
+function shortDay(day){
+  return `${Number(day.slice(4,6))}/${Number(day.slice(6))}`;
+}
+
+function nextReviewLabel(day){
+  for(let next=addCalendarDay(day,1),guard=0;guard<20;next=addCalendarDay(next,1),guard++){
+    if(tradeCalendar[next]===true)return shortDay(next);
+    if(!Object.prototype.hasOwnProperty.call(tradeCalendar,next)&&isWeekday(next))return shortDay(next);
+  }
+  const idx=dayIndex[day]??tradingDays.length-1;
+  const next=tradingDays[idx+1];
+  if(next)return shortDay(next);
+  return shortDay(day);
+}
+
+function addCalendarDay(day,offset){
+  const date=new Date(Date.UTC(Number(day.slice(0,4)),Number(day.slice(4,6))-1,Number(day.slice(6,8)))+offset*86400000);
+  return date.toISOString().slice(0,10).replace(/-/g,"");
+}
+
+function isWeekday(day){
+  const date=new Date(Date.UTC(Number(day.slice(0,4)),Number(day.slice(4,6))-1,Number(day.slice(6,8))));
+  const week=date.getUTCDay();
+  return week!==0&&week!==6;
 }
 
 function renderInsight(list){
@@ -1255,6 +1460,7 @@ function render(){
   };
   renderInsight(list);
   renderCorePool();
+  if(dailyLimitStocks[latestDate])renderCurrentAnalysis();
 }
 
 document.querySelectorAll("button[data-filter]").forEach(b=>b.addEventListener("click",()=>{setFilter(b.dataset.filter);render();}));
@@ -1273,6 +1479,7 @@ document.querySelectorAll("button[data-tnb-mode]").forEach(b=>b.addEventListener
 
 renderBreadthChart();
 render();
+loadCloudTimelineData();
 </script>
 </body>
 </html>
