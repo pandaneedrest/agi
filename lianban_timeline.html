@@ -223,7 +223,7 @@
 
     .foot { margin-top: 12px; color: var(--text-3); font-size: 11px; line-height: 1.8; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
 
-    .brief-grid { display: grid; grid-template-columns: 1fr 1.02fr; gap: 12px; margin: 12px 0 18px; }
+    .brief-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 12px 0 18px; }
     .brief-panel {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -322,23 +322,6 @@
       <div class="sec-note">成分可用时按成交额降序</div>
     </div>
   <div class="brief-grid">
-    <div class="brief-panel">
-      <div class="brief-title">周期结构<span class="brief-tag">接口计算</span></div>
-      <table class="brief-table">
-        <thead><tr><th>周期</th><th>起→终</th><th>峰B</th><th>天数</th><th>冰谷</th><th>核心题材</th><th>特征</th></tr></thead>
-        <tbody>
-          <tr><td><b>Cycle 1</b> <span class="state-ok">完结</span></td><td>3/6→3/30</td><td><span class="rednote">B=6</span>(3/17)</td><td>17</td><td>B=2</td><td>储能 / 光伏概念 / 绿色电力</td><td>双峰，正常退潮</td></tr>
-          <tr><td><b>Cycle 2</b> <span class="state-ok">完结</span></td><td>4/7→4/22</td><td>B=5(4/17)</td><td>12</td><td>B=2</td><td>华为概念 / 新能源汽车 / 芯片概念</td><td>弱周期，未触高潮</td></tr>
-          <tr><td><b>Cycle 3</b> <span class="state-warn">退潮完</span></td><td>4/23→5/21</td><td><span class="rednote">B=7</span>(5/11/5/12/5/20)</td><td>18</td><td>B=2</td><td>机器人概念 / 芯片概念 / 华为概念</td><td>强周期，直接启动 <span class="bluenote">5/20孤峰</span></td></tr>
-          <tr><td><b>Cycle 4</b> <span class="state-watch">震荡确认</span></td><td>5/22→6/4</td><td><span class="rednote">B=5</span>(6/3)</td><td>10</td><td><span class="bluenote">B=2</span></td><td>AI硬件 / 电力 / 光通信设备</td><td>6/4 B=4，AI硬件继续扩容，光通信设备分支加强</td></tr>
-        </tbody>
-      </table>
-      <div class="brief-kpis">
-        <div class="brief-kpi"><span>平均周期</span><strong>17交易日</strong></div>
-        <div class="brief-kpi"><span>高潮持续</span><strong>1/0/7天</strong></div>
-        <div class="brief-kpi"><span>冰点确认</span><strong>B≤2+C≥8</strong></div>
-      </div>
-    </div>
     <div class="brief-panel">
       <div class="brief-title">当前连板（6/4收盘）+ 三日成交量分析 <span class="brief-tag hot">6/5复盘参考</span></div>
       <table class="brief-table">
@@ -462,7 +445,7 @@
     <div id="date-insight" class="insight">未选择日期 — 点击图表任意列</div>
   </section>
 
-  <div class="foot">取数逻辑：连板周期甘特图来自 mac-tushare/TuShare limit_step，取 nums=2..11；同一轮连板只保留最高板数，已经晋级到3板以上的周期不重复展示二板阶段。B值宽度仍取 nums=3..11，剔除名称含 ST 后按 trade_date 计数，包含3板；周期结构用同一 B 值序列识别峰值/冰谷，并用开盘啦题材接口在周期区间内聚合活跃题材得到核心题材；当前连板用 2026-06-04 limit_step 选出当日3板+，用 daily 计算 6/2→6/4 三个交易日成交额趋势；板型、开板次数与换手使用 6/4 limit_list_ths 同字段口径校准；周期状态和 T天N板亦按该榜单 tag 识别，仅保留 T≤10、N≥2 且 T>N。6/4 kpl_concept 主表暂不可用，最强题材用开盘啦 kpl_concept_cons 与当日涨停池交集按涨停数量优先、成交额次优识别，并以同一成分表关联 daily 成交额生成核心股池；不使用其他题材接口替代。此图用于复盘市场连板结构，不构成投资建议。</div>
+  <div class="foot">取数逻辑：连板周期甘特图来自 mac-tushare/TuShare limit_step，取 nums=2..11；同一轮连板只保留最高板数，已经晋级到3板以上的周期不重复展示二板阶段。B值宽度仍取 nums=3..11，剔除名称含 ST 后按 trade_date 计数，包含3板；当前连板用 2026-06-04 limit_step 选出当日3板+，用 daily 计算 6/2→6/4 三个交易日成交额趋势；板型、开板次数与换手使用 6/4 limit_list_ths 同字段口径校准；周期状态和 T天N板亦按该榜单 tag 识别，仅保留 T≤10、N≥2 且 T>N。6/4 kpl_concept 主表暂不可用，最强题材用开盘啦 kpl_concept_cons 与当日涨停池交集按涨停数量优先、成交额次优识别，并以同一成分表关联 daily 成交额生成核心股池；不使用其他题材接口替代。此图用于复盘市场连板结构，不构成投资建议。</div>
 
 </main>
 <script>
