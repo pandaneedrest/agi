@@ -1,0 +1,1295 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <title>连板时间序列 · 近一月 2板+</title>
+  <style>
+    :root {
+      --bg: #111111;
+      --panel: #1c1c1a;
+      --panel-2: #22221f;
+      --border: #30302d;
+      --border-light: #292926;
+      --text: #f2f0e8;
+      --text-2: #c9c6bd;
+      --text-3: #8d8b84;
+      --blue: #83b5e9;
+      --blue-bg: rgba(131,181,233,.14);
+      --red: #e84a4a;
+      --red-bg: rgba(232,74,74,.14);
+      --amber: #f19978;
+      --amber-bg: rgba(241,153,120,.14);
+      --green: #5ac9a6;
+      --mono: 'DM Mono', 'Courier New', monospace;
+      --sans: 'Noto Sans SC', -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #4a4a45; border-radius: 3px; }
+
+    main { max-width: 1480px; margin: 0 auto; padding: 18px 16px 56px; display: flex; flex-direction: column; }
+    .hd { order: 0; }
+    .timeline-section { order: 1; }
+    .core-section { order: 2; }
+    .foot { order: 3; }
+
+    /* ── HEADER ── */
+    .hd {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      padding: 16px 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .hd-title { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -.2px; }
+    .hd-sub { margin-top: 5px; color: var(--text-3); font-size: 11px; line-height: 1.6; }
+    .hd-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--panel-2);
+      color: var(--text-2);
+      font-size: 12px;
+      font-family: var(--mono);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .hd-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+
+    /* ── METRICS ── */
+    .metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 12px 0; }
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px 14px;
+      position: relative;
+    }
+    .metric-accent {
+      position: absolute; top: 0; left: 18px; right: 18px; height: 2px; border-radius: 0 0 2px 2px;
+    }
+    .m1 .metric-accent { background: var(--blue); }
+    .m2 .metric-accent { background: var(--amber); }
+    .m3 .metric-accent { background: var(--blue); }
+    .m4 .metric-accent { background: var(--red); }
+    .metric-label { font-size: 11px; color: var(--text-3); font-weight: 600; letter-spacing: .3px; margin-top: 6px; }
+    .metric-val { font-family: var(--mono); font-size: 36px; font-weight: 500; line-height: 1; margin-top: 6px; letter-spacing: -2px; }
+    .m1 .metric-val { color: var(--blue); }
+    .m2 .metric-val { color: var(--amber); }
+    .m3 .metric-val { color: var(--blue); }
+    .m4 .metric-val { color: var(--red); }
+    .metric-note { margin-top: 6px; font-size: 11px; color: var(--text-3); line-height: 1.4; }
+    .metric-note strong { color: var(--text-2); font-weight: 600; }
+
+    /* ── SECTION ── */
+    section { margin-top: 18px; }
+    .sec-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .sec-title { font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .sec-bar { display: inline-block; width: 3px; height: 13px; background: var(--green); border-radius: 2px; flex-shrink: 0; }
+    .sec-note { font-size: 11px; color: var(--text-3); }
+
+    /* ── CONTROL BAR ── */
+    .ctrl-bar {
+      display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+      padding: 10px 14px;
+      background: var(--panel);
+      border: 1px solid var(--border); border-bottom: none;
+      border-radius: 8px 8px 0 0;
+    }
+    .ctrl-sep { width: 1px; height: 18px; background: var(--border); }
+    .ctrl-label { font-size: 11px; color: var(--text-3); font-weight: 600; letter-spacing: .3px; }
+    .seg {
+      display: flex;
+      background: #151514;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 3px;
+      gap: 2px;
+    }
+    button {
+      border: none; background: transparent; color: var(--text-2);
+      padding: 4px 12px; font-size: 12px; font-family: var(--sans);
+      cursor: pointer; border-radius: 5px;
+      transition: background .12s, color .12s;
+      white-space: nowrap; font-weight: 500;
+    }
+    button:hover { background: rgba(255,255,255,.07); color: var(--text); }
+    button.active { background: #32322e; color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+
+    /* ── CHART ── */
+    .chart-wrap {
+      border: 1px solid var(--border); border-radius: 0 0 8px 8px;
+      overflow: auto; background: var(--panel);
+    }
+    svg { display: block; min-width: 1180px; }
+
+    /* ── LEGEND ── */
+    .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 12px 0 0; color: var(--text-2); font-size: 13px; align-items: center; font-weight: 700; }
+    .key { display: inline-flex; align-items: center; gap: 5px; }
+    .swatch { width: 20px; height: 20px; border-radius: 4px; }
+
+    /* ── INSIGHT ── */
+    .insight {
+      margin-top: 8px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 14px; font-size: 12px; color: var(--text-2); line-height: 1.7; min-height: 42px;
+    }
+    .insight strong { color: var(--text); }
+    .insight .tk {
+      display: inline-block; margin: 2px 4px 2px 0;
+      padding: 1px 7px; border: 1px solid var(--border); border-radius: 4px;
+      background: #151514; color: var(--text); font-size: 11px;
+      font-family: var(--mono); white-space: nowrap;
+    }
+    .insight .tk.pend { color: var(--text-3); border-style: dashed; }
+
+    /* ── CORE PANEL ── */
+    .core-panel { margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--panel); }
+    .core-head {
+      display: grid; grid-template-columns: 1fr minmax(220px,290px); gap: 18px;
+      padding: 18px 20px; background: #181817; border-bottom: 1px solid var(--border); align-items: stretch;
+    }
+    .core-kicker { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--blue); margin-bottom: 5px; }
+    .core-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 4px; line-height: 1.3; }
+    .core-meta { font-size: 11px; color: var(--text-3); line-height: 1.6; }
+    .core-stats { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; }
+    .core-stat { display: inline-flex; align-items: baseline; gap: 4px; font-size: 11px; color: var(--text-3); }
+    .core-stat strong { font-family: var(--mono); font-size: 17px; font-weight: 500; color: var(--text); letter-spacing: -.5px; }
+    .core-focus {
+      font-size: 12px; color: var(--text-2);
+      border-left: 2px solid var(--green); background: rgba(90,201,166,.12);
+      padding: 10px 12px; line-height: 1.6; min-height: 72px; border-radius: 0 5px 5px 0;
+    }
+    .core-focus-label { font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--green); margin-bottom: 5px; }
+    .core-focus strong { color: var(--text); }
+
+    /* ── TABLES ── */
+    .core-tbl-wrap { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
+    th {
+      background: #181817; color: var(--text-3); font-weight: 700;
+      font-size: 10px; letter-spacing: .4px; text-transform: uppercase;
+      padding: 9px 12px; border-bottom: 1px solid var(--border);
+      text-align: right; white-space: nowrap; position: sticky; top: 0; z-index: 2;
+    }
+    th:first-child, th:nth-child(2), th:nth-child(3) { text-align: left; }
+    td {
+      padding: 8px 12px; border-bottom: 1px solid var(--border-light);
+      text-align: right; white-space: nowrap; color: var(--text-2);
+    }
+    td:first-child, td:nth-child(2), td:nth-child(3) { text-align: left; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #242420; }
+
+    .core-table .rank-badge {
+      display: inline-flex; justify-content: center; align-items: center;
+      min-width: 20px; height: 20px; border-radius: 4px;
+      background: #2d2d29; color: var(--text-3);
+      font-size: 11px; font-family: var(--mono);
+    }
+    .core-table tr { cursor: pointer; }
+    .core-table td { height: 40px; }
+    .core-table tr.active td { background: rgba(90,201,166,.12); }
+    .core-table tr.active .rank-badge { background: var(--green); color: #0f1714; }
+    .core-table th:first-child, .core-table td:first-child { width: 44px; text-align: center; }
+
+    .stock-name { font-weight: 600; color: var(--text); }
+    .money-cell { color: var(--red); font-family: var(--mono); font-weight: 500; }
+    .pct-cell { color: var(--red); font-family: var(--mono); }
+    .status-pill {
+      display: inline-block; border: 1px solid var(--border); background: var(--bg);
+      border-radius: 4px; padding: 1px 7px; color: var(--text-3); font-size: 11px;
+    }
+    .status-pill.watch { color: var(--blue); border-color: #bdd3ff; background: var(--blue-bg); }
+
+    .tbl-wrap { border: 1px solid var(--border); border-radius: 8px; overflow: auto; max-height: 580px; background: var(--panel); }
+    .tbl-wrap td:first-child { font-weight: 600; color: var(--text); }
+    .tbl-wrap td:nth-child(2) { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+    .tbl-wrap td:nth-child(5) { font-family: var(--mono); color: var(--amber); font-weight: 500; }
+    .tbl-wrap td:nth-child(6) { font-family: var(--mono); color: var(--text-3); }
+
+    .foot { margin-top: 12px; color: var(--text-3); font-size: 11px; line-height: 1.8; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
+
+    .brief-grid { display: grid; grid-template-columns: 1fr 1.02fr; gap: 12px; margin: 12px 0 18px; }
+    .brief-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .brief-title {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 14px 8px;
+      font-weight: 800; font-size: 14px; color: var(--text);
+    }
+    .brief-tag {
+      display: inline-flex; align-items: center;
+      height: 20px; padding: 0 8px; border-radius: 4px;
+      background: rgba(241,153,120,.13); color: var(--amber);
+      font-size: 10px; font-weight: 800;
+    }
+    .brief-tag.hot { background: rgba(232,74,74,.15); color: #ff9e9e; }
+    .brief-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .brief-table th {
+      position: static; background: #181817; color: var(--text-3);
+      padding: 8px 10px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      text-align: left; font-size: 10px; letter-spacing: .2px;
+    }
+    .brief-table td {
+      padding: 8px 10px; border-bottom: 1px solid var(--border-light);
+      color: var(--text-2); text-align: left; white-space: normal; line-height: 1.45;
+    }
+    .brief-table b { color: var(--text); }
+    .state-ok { color: #83b5e9; font-weight: 800; }
+    .state-watch { color: #5ac9a6; font-weight: 800; }
+    .state-warn { color: #f19978; font-weight: 800; }
+    .rednote { color: #ff8787; font-weight: 800; }
+    .bluenote { color: #83b5e9; font-weight: 800; }
+    .greennote { color: #5ac9a6; font-weight: 800; }
+    .brief-kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 10px 12px 12px; }
+    .brief-kpi {
+      background: #181817; border: 1px solid var(--border-light);
+      border-radius: 7px; padding: 10px 12px; text-align: center;
+    }
+    .brief-kpi span { display: block; color: var(--text-3); font-size: 11px; }
+    .brief-kpi strong { display: block; margin-top: 3px; color: var(--text); font-size: 18px; font-family: var(--mono); }
+    .sparkline { display: inline-block; min-width: 118px; font-family: var(--mono); color: var(--text); }
+    .sparkbar { display: block; height: 5px; margin-top: 4px; background: #2b2b27; border-radius: 4px; overflow: hidden; }
+    .sparkbar i { display: block; height: 100%; border-radius: 4px; }
+    .plate-chip {
+      display: inline-block; min-width: 24px; padding: 1px 5px; margin-right: 3px;
+      border-radius: 4px; background: rgba(131,181,233,.12); color: #9dccff;
+      font-size: 10px; font-weight: 800; text-align: center;
+    }
+    .plate-chip.ok { background: rgba(90,201,166,.13); color: #72d9ba; }
+    .plate-chip.hot { background: rgba(232,74,74,.13); color: #ff9e9e; }
+    .plate-chip.low { background: rgba(241,153,120,.13); color: #ffb08e; }
+    .advice {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      font-size: 11px; font-weight: 800;
+    }
+    .advice.good { background: rgba(90,201,166,.13); color: #72d9ba; }
+    .advice.warn { background: rgba(241,153,120,.13); color: #ffb08e; }
+    .advice.bad { background: rgba(232,74,74,.13); color: #ff9e9e; }
+    .candidate-title { padding: 8px 14px 2px; color: var(--text-2); font-size: 12px; font-weight: 800; }
+    .breadth-wrap {
+      border: 1px solid var(--border);
+      border-bottom: none;
+      background: #191918;
+      border-radius: 8px 8px 0 0;
+      padding: 12px 14px 10px;
+      overflow-x: auto;
+    }
+    .breadth-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .breadth-title { font-size: 13px; font-weight: 800; color: var(--text); }
+    .breadth-note { color: var(--text-3); font-size: 11px; }
+    #breadthChart { display: block; min-width: 1180px; }
+    .breadth-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 8px; color: var(--text-2); font-weight: 800; font-size: 12px; }
+    .breadth-legend .swatch { width: 14px; height: 14px; }
+
+    @media(max-width:860px){
+      .hd{flex-direction:column;align-items:flex-start;}
+      .metrics{grid-template-columns:repeat(2,1fr);}
+      .core-head{grid-template-columns:1fr;}
+      .brief-grid{grid-template-columns:1fr;}
+    }
+    @media(max-width:560px){
+      main{padding:14px 14px 36px;}
+      .metrics{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+<main>
+
+  <section class="core-section">
+    <div class="sec-hd">
+      <div class="sec-title"><span class="sec-bar"></span>最新核心题材涨停股池</div>
+      <div class="sec-note">成分可用时按成交额降序</div>
+    </div>
+  <div class="brief-grid">
+    <div class="brief-panel">
+      <div class="brief-title">周期结构<span class="brief-tag">接口计算</span></div>
+      <table class="brief-table">
+        <thead><tr><th>周期</th><th>起→终</th><th>峰B</th><th>天数</th><th>冰谷</th><th>核心题材</th><th>特征</th></tr></thead>
+        <tbody>
+          <tr><td><b>Cycle 1</b> <span class="state-ok">完结</span></td><td>3/6→3/30</td><td><span class="rednote">B=6</span>(3/17)</td><td>17</td><td>B=2</td><td>储能 / 光伏概念 / 绿色电力</td><td>双峰，正常退潮</td></tr>
+          <tr><td><b>Cycle 2</b> <span class="state-ok">完结</span></td><td>4/7→4/22</td><td>B=5(4/17)</td><td>12</td><td>B=2</td><td>华为概念 / 新能源汽车 / 芯片概念</td><td>弱周期，未触高潮</td></tr>
+          <tr><td><b>Cycle 3</b> <span class="state-warn">退潮完</span></td><td>4/23→5/21</td><td><span class="rednote">B=7</span>(5/11/5/12/5/20)</td><td>18</td><td>B=2</td><td>机器人概念 / 芯片概念 / 华为概念</td><td>强周期，直接启动 <span class="bluenote">5/20孤峰</span></td></tr>
+          <tr><td><b>Cycle 4</b> <span class="state-watch">震荡确认</span></td><td>5/22→6/4</td><td><span class="rednote">B=5</span>(6/3)</td><td>10</td><td><span class="bluenote">B=2</span></td><td>AI硬件 / 电力 / 光通信设备</td><td>6/4 B=4，AI硬件继续扩容，光通信设备分支加强</td></tr>
+        </tbody>
+      </table>
+      <div class="brief-kpis">
+        <div class="brief-kpi"><span>平均周期</span><strong>17交易日</strong></div>
+        <div class="brief-kpi"><span>高潮持续</span><strong>1/0/7天</strong></div>
+        <div class="brief-kpi"><span>冰点确认</span><strong>B≤2+C≥8</strong></div>
+      </div>
+    </div>
+    <div class="brief-panel">
+      <div class="brief-title">当前连板（6/4收盘）+ 三日成交量分析 <span class="brief-tag hot">6/5复盘参考</span></div>
+      <table class="brief-table">
+        <thead><tr><th>股票</th><th>3日成交额趋势</th><th>板型</th><th>炸板</th><th>6/5建议</th></tr></thead>
+        <tbody>
+          <tr><td><b>红星发展</b><br><span class="muted">AI硬件 / MLCC上游</span></td><td><span class="sparkline">11.37→5.52→<span class="rednote">32.27亿↑</span><span class="sparkbar"><i style="width:100%;background:#b9403d"></i></span></span></td><td><span class="plate-chip hot">8天6板</span></td><td><span class="plate-chip low">77次</span></td><td><span class="advice warn">谨慎</span><br><span class="muted">核心辨识度最强但剧烈放量，重点看分歧承接</span></td></tr>
+          <tr><td><b>大有能源</b><br><span class="muted">煤炭 / 国企改革</span></td><td><span class="sparkline">1.53→6.36→<span class="greennote">1.96亿↓</span><span class="sparkbar"><i style="width:6%;background:#5ac9a6"></i></span></span></td><td><span class="plate-chip hot">4连板</span></td><td><span class="plate-chip ok">0次</span></td><td><span class="advice good">可关注</span><br><span class="muted">一字晋级且量能回落，等开板确认强度</span></td></tr>
+          <tr><td><b>天洋新材</b><br><span class="muted">电子胶 / 光模块</span></td><td><span class="sparkline">3.43→1.01→<span class="rednote">8.08亿↑</span><span class="sparkbar"><i style="width:25%;background:#b9403d"></i></span></span></td><td><span class="plate-chip hot">4连板</span></td><td><span class="plate-chip low">4次</span></td><td><span class="advice warn">谨慎</span><br><span class="muted">换手放大后晋级，关注材料分支延续性</span></td></tr>
+          <tr><td><b>鑫科材料</b><br><span class="muted">AI硬件 / 铜材</span></td><td><span class="sparkline">8.24→2.48→<span class="rednote">29.59亿↑</span><span class="sparkbar"><i style="width:92%;background:#b9403d"></i></span></span></td><td><span class="plate-chip hot">3连板</span></td><td><span class="plate-chip low">9次</span></td><td><span class="advice warn">谨慎</span><br><span class="muted">高换手放量三板，和红星同属AI硬件分歧点</span></td></tr>
+        </tbody>
+      </table>
+      <div class="candidate-title">2板候选（6/5潜在三板）</div>
+      <table class="brief-table">
+        <thead><tr><th>股票</th><th>换手</th><th>炸板</th><th>封板时间</th><th>质量</th></tr></thead>
+        <tbody>
+          <tr><td><b>豫能控股</b> <span class="bluenote">电力</span></td><td>13.51%</td><td><span class="rednote">1次</span></td><td>10:54回封</td><td><span class="plate-chip ok">高</span>电力分支二板，观察能否带动板块回流</td></tr>
+          <tr><td><b>华源控股</b> <span class="muted">机器人 / 包装</span></td><td>21.40%</td><td><span class="rednote">4次</span></td><td>15:00回封</td><td><span class="plate-chip low">中</span>尾盘高换手二板，次日需主动转强</td></tr>
+          <tr><td><b>瑞贝卡</b> <span class="muted">消费 / 外贸</span></td><td>8.58%</td><td><span class="rednote">2次</span></td><td>09:42回封</td><td><span class="plate-chip ok">高</span>早盘二板，题材独立性较强</td></tr>
+          <tr><td><b>上海石化</b> <span class="muted">石化</span></td><td>2.40%</td><td><span class="rednote">1次</span></td><td>09:32回封</td><td><span class="plate-chip ok">高</span>T字二板，关注低换手承接</td></tr>
+          <tr><td><b>中重科技</b> <span class="muted">工业母机</span></td><td>2.37%</td><td><span class="rednote">1次</span></td><td>09:36回封</td><td><span class="plate-chip ok">高</span>低换手早盘二板，观察封单持续性</td></tr>
+          <tr><td><b>新中港</b> <span class="bluenote">电力</span></td><td>7.35%</td><td><span class="rednote">2次</span></td><td>09:37回封</td><td><span class="plate-chip ok">高</span>电力二板补涨，关注豫能带动</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+    <div class="core-panel">
+      <div class="core-head">
+        <div>
+          <div class="core-kicker">最新交易日核心题材</div>
+          <div id="core-title" class="core-title">读取中…</div>
+          <div id="core-summary" class="core-meta"></div>
+          <div id="core-stats" class="core-stats"></div>
+        </div>
+        <div class="core-focus">
+          <div class="core-focus-label">周期状态口径</div>
+          <span style="color:#8d97aa">板型标签、开板次数和换手字段来自 mac-tushare/limit_list_ths；连续板数以 limit_step 为准。股票题材统一来自开盘啦 kpl_concept，并以 kpl_concept_cons 关联当日涨停股。</span>
+        </div>
+      </div>
+      <div class="core-tbl-wrap">
+        <table class="core-table">
+          <thead>
+            <tr><th>#</th><th>股票</th><th>代码</th><th>成交额</th><th>涨幅</th><th>周期状态</th></tr>
+          </thead>
+          <tbody id="core-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="timeline-section">
+    <div class="sec-hd">
+      <div class="sec-title"><span class="sec-bar"></span>连板周期甘特图</div>
+      <div class="sec-note"></div>
+    </div>
+    <div class="breadth-wrap">
+      <div class="breadth-head">
+        <div class="breadth-title">3板及以上情绪宽度 · B值 / MA3</div>
+        <div class="breadth-note">柱状图=每日非ST且含3板的3板+股票数量，折线=MA3趋势</div>
+      </div>
+      <svg id="breadthChart" role="img" aria-label="每日3板及以上股票数量趋势图"></svg>
+      <div class="breadth-legend">
+        <span class="key"><span class="swatch" style="background:#e84a4a"></span>高潮 B≥6</span>
+        <span class="key"><span class="swatch" style="background:#d0912e"></span>蓄势 B=4-5</span>
+        <span class="key"><span class="swatch" style="background:#3f78b7"></span>震荡 B=2-3</span>
+        <span class="key"><span class="swatch" style="background:#5b7f31"></span>冰点 B≤1</span>
+        <span class="key"><span class="swatch" style="background:#4998f4;height:4px"></span>MA3</span>
+        <span class="breadth-note">剔除ST/退市博弈 · 识别出3个完整周期 · 平均周期约17个交易日 · 当前处于 Cycle 4 震荡确认期</span>
+      </div>
+    </div>
+    <div class="ctrl-bar">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ctrl-label">股票范围</span>
+        <div class="seg">
+          <button data-filter="all">全部</button>
+          <button class="active" data-filter="nonst">非 ST</button>
+          <button data-filter="st">ST</button>
+          <button data-filter="two">2 板+</button>
+          <button class="active" data-filter="three">3 板+</button>
+          <button data-filter="four">4 板+</button>
+          <button data-filter="high">7 板+</button>
+        </div>
+      </div>
+      <div class="ctrl-sep"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ctrl-label">排序方式</span>
+        <div class="seg">
+          <button data-sort-mode="board">按涨停板排序</button>
+          <button class="active" data-sort-mode="time">按时间排序</button>
+        </div>
+      </div>
+      <div class="ctrl-sep"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ctrl-label">T天N板</span>
+        <div class="seg">
+          <button data-tnb-mode="hide">隐藏</button>
+          <button class="active" data-tnb-mode="show">显示</button>
+        </div>
+      </div>
+      <div class="ctrl-sep"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ctrl-label">题材背景</span>
+        <div class="seg">
+          <button data-theme-mode="amount">按涨停成交额</button>
+          <button class="active" data-theme-mode="count">按涨停数量</button>
+        </div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <svg id="timeline" role="img" aria-label="连板股票时间序列图"></svg>
+    </div>
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:#e84a4a"></span>8+板 超强</span>
+      <span class="key"><span class="swatch" style="background:#f19978"></span>6-7板 强势</span>
+      <span class="key"><span class="swatch" style="background:#83b5e9"></span>4-5板 次强</span>
+      <span class="key"><span class="swatch" style="background:#b9b8b2"></span>3板 正常</span>
+      <span class="key"><span class="swatch" style="background:#718291"></span>2板 观察</span>
+      <span class="key"><span class="swatch" style="background:transparent;border:2px dashed #9b9990"></span>ST/退市博弈</span>
+      <span class="key"><span class="swatch" style="background:transparent;border:2px dashed #5ac9a6"></span>T天N板</span>
+      <span class="key"><span class="swatch" style="background:#5ac9a6"></span>今仍连板</span>
+    </div>
+    <div id="date-insight" class="insight">未选择日期 — 点击图表任意列</div>
+  </section>
+
+  <div class="foot">取数逻辑：连板周期甘特图来自 mac-tushare/TuShare limit_step，取 nums=2..11；同一轮连板只保留最高板数，已经晋级到3板以上的周期不重复展示二板阶段。B值宽度仍取 nums=3..11，剔除名称含 ST 后按 trade_date 计数，包含3板；周期结构用同一 B 值序列识别峰值/冰谷，并用开盘啦题材接口在周期区间内聚合活跃题材得到核心题材；当前连板用 2026-06-04 limit_step 选出当日3板+，用 daily 计算 6/2→6/4 三个交易日成交额趋势；板型、开板次数与换手使用 6/4 limit_list_ths 同字段口径校准；周期状态和 T天N板亦按该榜单 tag 识别，仅保留 T≤10、N≥2 且 T>N。6/4 kpl_concept 主表暂不可用，最强题材用开盘啦 kpl_concept_cons 与当日涨停池交集按涨停数量优先、成交额次优识别，并以同一成分表关联 daily 成交额生成核心股池；不使用其他题材接口替代。此图用于复盘市场连板结构，不构成投资建议。</div>
+
+</main>
+<script>
+const tradingDays = [
+  "20260417","20260420","20260421","20260422","20260423","20260424","20260427","20260428",
+  "20260429","20260430","20260506","20260507","20260508","20260511","20260512","20260513",
+  "20260514","20260515","20260518","20260519","20260520","20260521","20260522","20260525","20260526","20260527","20260528","20260529","20260601","20260602","20260603","20260604"
+];
+const dayIndex = Object.fromEntries(tradingDays.map((d,i)=>[d,i]));
+const threeBoardSegments = [
+  ["*ST春天","600381.SH","20260428","20260515",11],
+  ["*ST中迪","000609.SZ","20260421","20260507",10],
+  ["*ST宇顺","002289.SZ","20260427","20260512",9],
+  ["*ST准油","002207.SZ","20260430","20260515",9],
+  ["利仁科技","001259.SZ","20260511","20260520",8],
+  ["*ST宝馨","002514.SZ","20260511","20260520",8],
+  ["*ST岩石","600696.SH","20260417","20260427",7],
+  ["*ST高科","600730.SH","20260429","20260512",7],
+  ["威龙股份","603779.SH","20260513","20260521",7],
+  ["*ST艾艾","603580.SH","20260430","20260512",6],
+  ["大唐发电","601991.SH","20260506","20260513",6],
+  ["蒙娜丽莎","002918.SZ","20260508","20260515",6],
+  ["金螳螂","002081.SZ","20260417","20260423",5],
+  ["水发燃气","603318.SH","20260422","20260428",5],
+  ["*ST联翔","603272.SH","20260427","20260506",5],
+  ["金螳螂","002081.SZ","20260428","20260507",5],
+  ["福达合金","603045.SH","20260430","20260511",5],
+  ["*ST利达","603828.SH","20260430","20260511",5],
+  ["*ST东晶","002199.SZ","20260508","20260514",5],
+  ["*ST美芝","002856.SZ","20260511","20260515",5],
+  ["*ST亚士","603378.SH","20260512","20260518",5],
+  ["*ST原尚","603813.SH","20260420","20260423",4],
+  ["华电能源","600726.SH","20260423","20260428",4],
+  ["越剑智能","603095.SH","20260427","20260430",4],
+  ["宝光股份","600379.SH","20260428","20260506",4],
+  ["永杉锂业","603399.SH","20260428","20260506",4],
+  ["*ST正平","603843.SH","20260428","20260506",4],
+  ["*ST荣控","000668.SZ","20260506","20260511",4],
+  ["*ST声迅","003004.SZ","20260506","20260511",4],
+  ["通鼎互联","002491.SZ","20260507","20260512",4],
+  ["宝鼎科技","002552.SZ","20260507","20260512",4],
+  ["ST美克","600337.SH","20260508","20260513",4],
+  ["交大昂立","600530.SH","20260508","20260513",4],
+  ["ST三木","000632.SZ","20260511","20260514",4],
+  ["*ST利源","002501.SZ","20260511","20260514",4],
+  ["*ST联翔","603272.SH","20260511","20260514",4],
+  ["京能电力","600578.SH","20260513","20260518",4],
+  ["ST金鸿","000669.SZ","20260514","20260519",4],
+  ["北自科技","603082.SH","20260514","20260519",4],
+  ["达实智能","002421.SZ","20260515","20260520",4],
+  ["ST喜临门","603008.SH","20260515","20260520",4],
+  ["诚邦股份","603316.SH","20260518","20260521",4],
+  ["安诺其","300067.SZ","20260421","20260423",3],
+  ["华电辽能","600396.SH","20260421","20260423",3],
+  ["苏州高新","600736.SH","20260421","20260423",3],
+  ["泰慕士","001234.SZ","20260422","20260424",3],
+  ["众合科技","000925.SZ","20260423","20260427",3],
+  ["维科技术","600152.SH","20260424","20260428",3],
+  ["飞马国际","002210.SZ","20260427","20260429",3],
+  ["ST新华锦","600735.SH","20260427","20260429",3],
+  ["金融街","000402.SZ","20260429","20260506",3],
+  ["*ST棒杰","002634.SZ","20260429","20260506",3],
+  ["丰元股份","002805.SZ","20260429","20260506",3],
+  ["丽岛新材","603937.SH","20260429","20260506",3],
+  ["中国长城","000066.SZ","20260430","20260507",3],
+  ["*ST沐邦","603398.SH","20260430","20260507",3],
+  ["波导股份","600130.SH","20260506","20260508",3],
+  ["大业股份","603278.SH","20260506","20260508",3],
+  ["杭电股份","603618.SH","20260506","20260508",3],
+  ["红板科技","603459.SH","20260507","20260511",3],
+  ["泰晶科技","603738.SH","20260507","20260511",3],
+  ["山东玻纤","605006.SH","20260507","20260511",3],
+  ["*ST双成","002693.SZ","20260508","20260512",3],
+  ["康欣新材","600076.SH","20260508","20260512",3],
+  ["京投发展","600683.SH","20260508","20260512",3],
+  ["*ST实达","600734.SH","20260508","20260512",3],
+  ["*ST网达","603189.SH","20260508","20260512",3],
+  ["ST百利","603959.SH","20260508","20260512",3],
+  ["ST京蓝","000711.SZ","20260511","20260513",3],
+  ["黄河旋风","600172.SH","20260511","20260513",3],
+  ["华电辽能","600396.SH","20260511","20260513",3],
+  ["ST通脉","603559.SH","20260511","20260513",3],
+  ["合肥城建","002208.SZ","20260512","20260514",3],
+  ["花王股份","603007.SH","20260512","20260514",3],
+  ["可川科技","603052.SH","20260512","20260514",3],
+  ["金富科技","003018.SZ","20260514","20260518",3],
+  ["金海高科","603311.SH","20260515","20260519",3],
+  ["合百集团","000417.SZ","20260518","20260520",3],
+  ["ST得润","002055.SZ","20260518","20260520",3],
+  ["川润股份","002272.SZ","20260518","20260520",3],
+  ["三孚股份","603938.SH","20260518","20260520",3],
+  ["四环生物","000518.SZ","20260520","20260525",4],
+  ["龙星科技","002442.SZ","20260520","20260522",3],
+  ["金利华电","300069.SZ","20260520","20260522",3],
+  ["大众交通","600611.SH","20260520","20260522",3],
+  ["恒林股份","603661.SH","20260521","20260525",3],
+  ["新金路","000510.SZ","20260522","20260526",3],
+  ["宝鼎科技","002552.SZ","20260522","20260526",3],
+  ["双星新材","002585.SZ","20260522","20260526",3],
+  ["黄河旋风","600172.SH","20260522","20260526",3],
+  ["ST京蓝","000711.SZ","20260522","20260526",3],
+  ["ST得润","002055.SZ","20260522","20260526",3],
+  ["*ST威领","002667.SZ","20260522","20260526",3],
+  ["ST东尼","603595.SH","20260522","20260526",3],
+  ["*ST皇庭","000056.SZ","20260525","20260528",4],
+  ["华塑控股","000509.SZ","20260525","20260528",4],
+  ["*ST雅博","002323.SZ","20260525","20260601",6],
+  ["*ST美芝","002856.SZ","20260525","20260527",3],
+  ["香江控股","600162.SH","20260525","20260529",5],
+  ["*ST春天","600381.SH","20260525","20260527",3],
+  ["华电能源","600726.SH","20260525","20260529",5],
+  ["*ST闻泰","600745.SH","20260525","20260601",6],
+  ["*ST联翔","603272.SH","20260525","20260527",3],
+  ["中京电子","002579.SZ","20260526","20260528",3],
+  ["*ST景谷","600265.SH","20260526","20260601",5],
+  ["粤电力A","000539.SZ","20260527","20260601",4],
+  ["合锻智能","603011.SH","20260527","20260601",4],
+  ["ST海王","000078.SZ","20260528","20260601",3],
+  ["天地在线","002995.SZ","20260528","20260601",3],
+  ["ST洲际","600759.SH","20260528","20260601",3]
+].map(([name,code,start,end,maxBoards],i)=>({
+  id:i+1,name,code,start,end,maxBoards,
+  days:dayIndex[end]-dayIndex[start]+1,
+  isST:/ST/.test(name)
+}));
+
+const twoBoardSegments=`ST京蓝|000711.SZ|20260417|20260417
+ST英飞拓|002528.SZ|20260417|20260417
+洪汇新材|002802.SZ|20260417|20260417
+昂利康|002940.SZ|20260417|20260417
+宝丽迪|300905.SZ|20260417|20260417
+华升股份|600156.SH|20260417|20260417
+株冶集团|600961.SH|20260417|20260417
+可川科技|603052.SH|20260417|20260417
+福鞍股份|603315.SH|20260417|20260417
+品高股份|688227.SH|20260417|20260417
+江顺科技|001400.SZ|20260417|20260420
+合力泰|002217.SZ|20260417|20260420
+康盛股份|002418.SZ|20260417|20260420
+云南锗业|002428.SZ|20260417|20260420
+金富科技|003018.SZ|20260417|20260420
+科新发展|600234.SH|20260417|20260420
+天通股份|600330.SH|20260417|20260420
+彩虹股份|600707.SH|20260417|20260420
+圣龙股份|603178.SH|20260417|20260420
+沃格光电|603773.SH|20260417|20260420
+ST中迪|000609.SZ|20260420|20260421
+*ST宇顺|002289.SZ|20260420|20260421
+神剑股份|002361.SZ|20260420|20260421
+ST瑞和|002620.SZ|20260420|20260421
+青山纸业|600103.SH|20260420|20260421
+*ST海华|600243.SH|20260420|20260421
+*ST春天|600381.SH|20260420|20260421
+广安爱众|600979.SH|20260420|20260421
+中衡设计|603017.SH|20260420|20260421
+*ST正平|603843.SH|20260420|20260421
+九鼎新材|002201.SZ|20260421|20260422
+海星股份|603115.SH|20260421|20260422
+立达信|605365.SH|20260421|20260422
+东望时代|600052.SH|20260422|20260423
+中新集团|601512.SH|20260422|20260423
+杭电股份|603618.SH|20260422|20260423
+华源控股|002787.SZ|20260423|20260424
+综艺股份|600770.SH|20260423|20260424
+国检集团|603060.SH|20260423|20260424
+通达电气|603390.SH|20260423|20260424
+深圳华强|000062.SZ|20260424|20260427
+双枪科技|001211.SZ|20260424|20260427
+泰坦股份|003036.SZ|20260424|20260427
+西藏珠峰|600338.SH|20260424|20260427
+联翔股份|603272.SH|20260424|20260427
+*ST帅电|605336.SH|20260424|20260427
+德龙汇能|000593.SZ|20260427|20260428
+*ST发展|000838.SZ|20260427|20260428
+东方智造|002175.SZ|20260427|20260428
+*ST步森|002569.SZ|20260427|20260428
+铭普光磁|002902.SZ|20260427|20260428
+*ST椰岛|600238.SH|20260427|20260428
+ST起步|603557.SH|20260427|20260428
+*ST原尚|603813.SH|20260427|20260428
+格林达|603931.SH|20260427|20260428
+德才股份|605287.SH|20260427|20260428
+罗曼股份|605289.SH|20260427|20260428
+宏英智能|001266.SZ|20260428|20260429
+扬子新材|002652.SZ|20260428|20260429
+华升股份|600156.SH|20260428|20260429
+*ST海华|600243.SH|20260428|20260429
+ST信通|600289.SH|20260428|20260429
+天味食品|603317.SH|20260428|20260429
+利通电子|603629.SH|20260428|20260429
+三人行|605168.SH|20260428|20260429
+海德股份|000567.SZ|20260429|20260430
+众泰汽车|000980.SZ|20260429|20260430
+融捷股份|002192.SZ|20260429|20260430
+华宏科技|002645.SZ|20260429|20260430
+翔鹭钨业|002842.SZ|20260429|20260430
+光莆股份|300632.SZ|20260429|20260430
+金瑞矿业|600714.SH|20260429|20260430
+共创草坪|605099.SH|20260429|20260430
+舒华体育|605299.SH|20260429|20260430
+日联科技|688531.SH|20260429|20260430
+安道麦A|000553.SZ|20260430|20260506
+长江证券|000783.SZ|20260430|20260506
+润贝航科|001316.SZ|20260430|20260506
+西部材料|002149.SZ|20260430|20260506
+汉钟精机|002158.SZ|20260430|20260506
+粤传媒|002181.SZ|20260430|20260506
+华软科技|002453.SZ|20260430|20260506
+跨境通|002640.SZ|20260430|20260506
+*ST美芝|002856.SZ|20260430|20260506
+中天精装|002989.SZ|20260430|20260506
+*ST亚振|603389.SH|20260430|20260506
+ST通脉|603559.SH|20260430|20260506
+ST京蓝|000711.SZ|20260506|20260507
+航锦科技|000818.SZ|20260506|20260507
+中嘉博创|000889.SZ|20260506|20260507
+盈峰环境|000967.SZ|20260506|20260507
+合力泰|002217.SZ|20260506|20260507
+宇环数控|002903.SZ|20260506|20260507
+真爱美家|003041.SZ|20260506|20260507
+ST海泰|600082.SH|20260506|20260507
+*ST尔雅|600107.SH|20260506|20260507
+华电辽能|600396.SH|20260506|20260507
+东阳光|600673.SH|20260506|20260507
+大连热电|600719.SH|20260506|20260507
+腾龙股份|603158.SH|20260506|20260507
+宏和科技|603256.SH|20260506|20260507
+诚邦股份|603316.SH|20260506|20260507
+*ST起步|603557.SH|20260506|20260507
+德林海|688069.SH|20260506|20260507
+新能泰山|000720.SZ|20260507|20260508
+*ST启环|000826.SZ|20260507|20260508
+巨轮智能|002031.SZ|20260507|20260508
+众生药业|002317.SZ|20260507|20260508
+共达电声|002655.SZ|20260507|20260508
+润建股份|002929.SZ|20260507|20260508
+宏川智慧|002930.SZ|20260507|20260508
+*ST湘邮|600476.SH|20260507|20260508
+北投科技|600936.SH|20260507|20260508
+南威软件|603636.SH|20260507|20260508
+达安基因|002030.SZ|20260508|20260511
+光迅科技|002281.SZ|20260508|20260511
+*ST步森|002569.SZ|20260508|20260511
+*ST冀凯|002691.SZ|20260508|20260511
+钧达股份|002865.SZ|20260508|20260511
+澄星股份|600078.SH|20260508|20260511
+科新发展|600234.SH|20260508|20260511
+卓郎智能|600545.SH|20260508|20260511
+上实发展|600748.SH|20260508|20260511
+富春染织|605189.SH|20260508|20260511
+*ST美丽|000010.SZ|20260511|20260512
+深深房A|000029.SZ|20260511|20260512
+上峰水泥|000672.SZ|20260511|20260512
+双枪科技|001211.SZ|20260511|20260512
+ST能特|002102.SZ|20260511|20260512
+*ST建艺|002789.SZ|20260511|20260512
+汉邦高科|300449.SZ|20260511|20260512
+津药药业|600488.SH|20260511|20260512
+*ST亿晶|600537.SH|20260511|20260512
+远东股份|600869.SH|20260511|20260512
+海鸥股份|603269.SH|20260511|20260512
+*ST沐邦|603398.SH|20260511|20260512
+*ST起步|603557.SH|20260511|20260512
+韶能股份|000601.SZ|20260512|20260513
+晋控电力|000767.SZ|20260512|20260513
+众合科技|000925.SZ|20260512|20260513
+*ST东智|002175.SZ|20260512|20260513
+汉缆股份|002498.SZ|20260512|20260513
+*ST英飞|002528.SZ|20260512|20260513
+通达股份|002560.SZ|20260512|20260513
+线上线下|300959.SZ|20260512|20260513
+ST海泰|600082.SH|20260512|20260513
+万控智造|603070.SH|20260512|20260513
+快克智能|603203.SH|20260512|20260513
+金房能源|001210.SZ|20260513|20260514
+欧克科技|001223.SZ|20260513|20260514
+*ST瑞和|002620.SZ|20260513|20260514
+*ST东易|002713.SZ|20260513|20260514
+可立克|002782.SZ|20260513|20260514
+昂利康|002940.SZ|20260513|20260514
+华升股份|600156.SH|20260513|20260514
+宁波中百|600857.SH|20260513|20260514
+贵州燃气|600903.SH|20260513|20260514
+南华期货|603093.SH|20260513|20260514
+ST东尼|603595.SH|20260513|20260514
+中船特气|688146.SH|20260513|20260514
+和远气体|002971.SZ|20260514|20260515
+ST信通|600289.SH|20260514|20260515
+中锐股份|002374.SZ|20260515|20260518
+ST中珠|600568.SH|20260515|20260518
+柏诚股份|601133.SH|20260515|20260518
+滨化股份|601678.SH|20260515|20260518
+*ST数源|000909.SZ|20260518|20260519
+合肥城建|002208.SZ|20260518|20260519
+宝鼎科技|002552.SZ|20260518|20260519
+弘信电子|300657.SZ|20260518|20260519
+辽宁能源|600758.SH|20260518|20260519
+电科数字|600850.SH|20260518|20260519
+贵州燃气|600903.SH|20260518|20260519
+*ST福成|600965.SH|20260518|20260519
+海星股份|603115.SH|20260518|20260519
+嘉环科技|603206.SH|20260518|20260519
+艾华集团|603989.SH|20260518|20260519
+伟时电子|605218.SH|20260518|20260519
+可立克|002782.SZ|20260519|20260520
+声迅股份|003004.SZ|20260519|20260520
+ST标准|600302.SH|20260519|20260520
+法拉电子|600563.SH|20260519|20260520
+凯迪股份|605288.SH|20260519|20260520
+南玻A|000012.SZ|20260521|20260522
+京东方A|000725.SZ|20260521|20260522
+和泰机电|001225.SZ|20260521|20260522
+联创电子|002036.SZ|20260521|20260522
+锋龙股份|002931.SZ|20260521|20260522
+曙光股份|600303.SH|20260521|20260522
+风华高科|000636.SZ|20260522|20260525
+*ST东智|002175.SZ|20260522|20260525
+*ST东晶|002199.SZ|20260522|20260525
+达实智能|002421.SZ|20260522|20260525
+九安医疗|002432.SZ|20260522|20260525
+*ST棒杰|002634.SZ|20260522|20260525
+光华科技|002741.SZ|20260522|20260525
+意华股份|002897.SZ|20260522|20260525
+鹏鼎控股|002938.SZ|20260522|20260525
+博杰股份|002975.SZ|20260522|20260525
+华盛昌|002980.SZ|20260522|20260525
+莲花控股|600186.SH|20260522|20260525
+科新发展|600234.SH|20260522|20260525
+华丽家族|600503.SH|20260522|20260525
+狮头股份|600539.SH|20260522|20260525
+奥康国际|603001.SH|20260522|20260525
+*ST华鹏|603021.SH|20260522|20260525
+宏和科技|603256.SH|20260522|20260525
+三祥新材|603663.SH|20260522|20260525
+博敏电子|603936.SH|20260522|20260525
+恒盛能源|605580.SH|20260522|20260525
+华天科技|002185.SZ|20260525|20260526
+新亚制程|002388.SZ|20260525|20260526
+*ST宝馨|002514.SZ|20260525|20260526
+泰坦股份|003036.SZ|20260525|20260526
+三佳科技|600520.SH|20260525|20260526
+长电科技|600584.SH|20260525|20260526
+*ST高科|600730.SH|20260525|20260526
+中百集团|000759.SZ|20260526|20260527
+盛龙股份|001257.SZ|20260526|20260527
+ST万邦|002082.SZ|20260526|20260527
+步步高|002251.SZ|20260526|20260527
+真视通|002771.SZ|20260526|20260527
+江海股份|002484.SZ|20260527|20260528
+*ST华幸|600340.SH|20260527|20260528
+德新科技|603032.SH|20260527|20260528
+艾华集团|603989.SH|20260527|20260528
+天健集团|000090.SZ|20260528|20260529
+*ST宇顺|002289.SZ|20260528|20260529
+华锋股份|002806.SZ|20260528|20260529
+诺德股份|600110.SH|20260528|20260529
+*ST三房|600370.SH|20260528|20260529
+盛剑科技|603324.SH|20260528|20260529
+*ST美丽|000010.SZ|20260529|20260601
+深南电A|000037.SZ|20260529|20260601
+晋控电力|000767.SZ|20260529|20260601
+ST云动|000903.SZ|20260529|20260601
+金螳螂|002081.SZ|20260529|20260601
+*ST准油|002207.SZ|20260529|20260601
+江苏国信|002608.SZ|20260529|20260601
+*ST棒杰|002634.SZ|20260529|20260601
+*ST美芝|002856.SZ|20260529|20260601
+泓淋电力|301439.SZ|20260529|20260601
+华能国际|600011.SH|20260529|20260601
+*ST国中|600187.SH|20260529|20260601
+中央商场|600280.SH|20260529|20260601
+*ST联翔|603272.SH|20260529|20260601
+春秋电子|603890.SH|20260529|20260601`.split("\n").map((row,i)=>{
+  const[name,code,start,end]=row.split("|");
+  return{id:threeBoardSegments.length+i+1,name,code,start,end,maxBoards:2,days:dayIndex[end]-dayIndex[start]+1,isST:/ST/.test(name)};
+});
+const segments=[...threeBoardSegments,...twoBoardSegments];
+const latestStepDate="20260604";
+const latestStepRows=[
+  ["*ST威领","002667.SZ",4],["*ST瑞茂","600180.SH",4],["红星发展","600367.SH",4],
+  ["大有能源","600403.SH",4],["天洋新材","603330.SH",4],
+  ["*ST利源","002501.SZ",3],["*ST华西","002630.SZ",3],["*ST岭南","002717.SZ",3],
+  ["鑫科材料","600255.SH",3],
+  ["豫能控股","001896.SZ",2],["华源控股","002787.SZ",2],["瑞贝卡","600439.SH",2],
+  ["上海石化","600688.SH",2],["中重科技","603135.SH",2],["新中港","605162.SH",2]
+];
+latestStepRows.forEach(([name,code,maxBoards])=>{
+  const endIdx=dayIndex[latestStepDate];
+  const start=tradingDays[Math.max(0,endIdx-maxBoards+1)];
+  const current=segments.find(s=>s.code===code&&s.start===start);
+  if(current){
+    current.end=latestStepDate;
+    current.maxBoards=Math.max(current.maxBoards,maxBoards);
+    current.days=dayIndex[current.end]-dayIndex[current.start]+1;
+    current.name=name;
+    current.isST=/ST/.test(name);
+    return;
+  }
+  segments.push({
+    id:segments.length+1,name,code,start,end:latestStepDate,maxBoards,
+    days:dayIndex[latestStepDate]-dayIndex[start]+1,isST:/ST/.test(name)
+  });
+});
+
+const fmt=d=>`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6)}`;
+const barColor=n=>n>=8?"#e84a4a":n>=6?"#f19978":n>=4?"#83b5e9":n>=3?"#b9b8b2":"#718291";
+const dailyThemeModes={
+  "amount":{
+    "20260417":{"name":"商业航天","code":"000226.KP","amount":25353770105,"count":10,"limitCount":74,"kplLimitCount":9},
+    "20260420":{"name":"商业航天","code":"000226.KP","amount":38468661745,"count":17,"limitCount":90,"kplLimitCount":14},
+    "20260421":{"name":"商业航天","code":"000226.KP","amount":20735279514,"count":9,"limitCount":65,"kplLimitCount":8},
+    "20260422":{"name":"商业航天","code":"000226.KP","amount":34876164245,"count":12,"limitCount":62,"kplLimitCount":11},
+    "20260423":{"name":"电力","code":"000229.KP","amount":18207980114,"count":8,"limitCount":58,"kplLimitCount":7},
+    "20260424":{"name":"国产芯片概念","code":"000355.KP","amount":14080123224,"count":6,"limitCount":68,"kplLimitCount":6},
+    "20260427":{"name":"国产芯片概念","code":"000355.KP","amount":8824409982,"count":7,"limitCount":84,"kplLimitCount":7},
+    "20260428":{"name":"商业航天","code":"000226.KP","amount":7049861000,"count":4,"limitCount":75,"kplLimitCount":4},
+    "20260429":{"name":"锂电池材料","code":"000363.KP","amount":46195323545,"count":14,"limitCount":118,"kplLimitCount":14},
+    "20260430":{"name":"国产芯片概念","code":"000355.KP","amount":51052175632,"count":6,"limitCount":97,"kplLimitCount":6},
+    "20260506":{"name":"电力","code":"000229.KP","amount":29984812290,"count":15,"limitCount":124,"kplLimitCount":14},
+    "20260507":{"name":"AI硬件","code":"000025.KP","amount":56036037866,"count":16,"limitCount":126,"kplLimitCount":15},
+    "20260508":{"name":"AI硬件","code":"000025.KP","amount":50765681207,"count":15,"limitCount":124,"kplLimitCount":13},
+    "20260511":{"name":"商业航天","code":"000226.KP","amount":47842174774,"count":15,"limitCount":133,"kplLimitCount":14},
+    "20260512":{"name":"商业航天","code":"000226.KP","amount":21207287259,"count":8,"limitCount":94,"kplLimitCount":8},
+    "20260513":{"name":"AI硬件","code":"000025.KP","amount":63586673125,"count":18,"limitCount":146,"kplLimitCount":18},
+    "20260514":{"name":"商业航天","code":"000226.KP","amount":7230438453,"count":3,"limitCount":79,"kplLimitCount":3},
+    "20260515":{"name":"电力","code":"000229.KP","amount":15302677092,"count":3,"limitCount":72,"kplLimitCount":3},
+    "20260518":{"name":"长鑫存储概念","code":"000129.KP","amount":11516014661,"count":10,"limitCount":101,"kplLimitCount":9},
+    "20260519":{"name":"商业航天","code":"000226.KP","amount":33717659326,"count":11,"limitCount":122,"kplLimitCount":9},
+    "20260520":{"name":"长鑫存储概念","code":"000129.KP","amount":40048480966,"count":6,"limitCount":69,"kplLimitCount":6},
+    "20260521":{"name":"长江存储概念","code":"000393.KP","amount":832496466,"count":1,"limitCount":35,"kplLimitCount":1},
+    "20260522":{"name":"AI硬件","code":"000025.KP","amount":79176870327,"count":31,"limitCount":136,"kplLimitCount":30},
+    "20260525":{"name":"AI硬件","code":"000025.KP","amount":60737230207,"count":15,"limitCount":103,"kplLimitCount":15},
+    "20260526":{"name":"韬（τ）定律概念","code":"000394.KP","amount":40027941614,"count":2,"limitCount":64,"kplLimitCount":2},
+    "20260527":{"name":"待补充","pending":true},
+    "20260528":{"name":"AI硬件","code":"000025.KP","amount":51224558319,"count":15,"limitCount":125,"kplLimitCount":15},
+    "20260529":{"name":"电力","code":"000229.KP","amount":16574299820,"count":7,"limitCount":67,"kplLimitCount":7},
+    "20260601":{"name":"AI硬件","code":"000025.KP","amount":14823366465,"count":9,"limitCount":164,"kplLimitCount":9},
+    "20260602":{"name":"AI硬件","code":"000025.KP","amount":70218167804,"count":11,"limitCount":94,"kplLimitCount":11},
+    "20260603":{"name":"AI硬件","code":"000025.KP","amount":25076314604,"count":8,"limitCount":81,"kplLimitCount":8},
+    "20260604":{"name":"AI硬件","code":"000025.KP","amount":54080206151,"count":17,"limitCount":90,"kplLimitCount":17}
+  },
+  "count":{
+    "20260417":{"name":"商业航天","code":"000226.KP","amount":25353770105,"count":10,"limitCount":74,"kplLimitCount":9},
+    "20260420":{"name":"商业航天","code":"000226.KP","amount":38468661745,"count":17,"limitCount":90,"kplLimitCount":14},
+    "20260421":{"name":"商业航天","code":"000226.KP","amount":20735279514,"count":9,"limitCount":65,"kplLimitCount":8},
+    "20260422":{"name":"商业航天","code":"000226.KP","amount":34876164245,"count":12,"limitCount":62,"kplLimitCount":11},
+    "20260423":{"name":"电力","code":"000229.KP","amount":18207980114,"count":8,"limitCount":58,"kplLimitCount":7},
+    "20260424":{"name":"国产芯片概念","code":"000355.KP","amount":14080123224,"count":6,"limitCount":68,"kplLimitCount":6},
+    "20260427":{"name":"国产芯片概念","code":"000355.KP","amount":8824409982,"count":7,"limitCount":84,"kplLimitCount":7},
+    "20260428":{"name":"国产芯片概念","code":"000355.KP","amount":5343337559,"count":6,"limitCount":75,"kplLimitCount":5},
+    "20260429":{"name":"锂电池材料","code":"000363.KP","amount":46195323545,"count":14,"limitCount":118,"kplLimitCount":14},
+    "20260430":{"name":"商业航天","code":"000226.KP","amount":24287874403,"count":13,"limitCount":97,"kplLimitCount":13},
+    "20260506":{"name":"电力","code":"000229.KP","amount":29984812290,"count":15,"limitCount":124,"kplLimitCount":14},
+    "20260507":{"name":"AI硬件","code":"000025.KP","amount":56036037866,"count":16,"limitCount":126,"kplLimitCount":15},
+    "20260508":{"name":"AI硬件","code":"000025.KP","amount":50765681207,"count":15,"limitCount":124,"kplLimitCount":13},
+    "20260511":{"name":"商业航天","code":"000226.KP","amount":47842174774,"count":15,"limitCount":133,"kplLimitCount":14},
+    "20260512":{"name":"电力","code":"000229.KP","amount":18626922232,"count":9,"limitCount":94,"kplLimitCount":9},
+    "20260513":{"name":"电力","code":"000229.KP","amount":34002378274,"count":23,"limitCount":146,"kplLimitCount":22},
+    "20260514":{"name":"电力","code":"000229.KP","amount":6677615617,"count":4,"limitCount":79,"kplLimitCount":4},
+    "20260515":{"name":"人形机器人","code":"000084.KP","amount":9221128566,"count":8,"limitCount":72,"kplLimitCount":8},
+    "20260518":{"name":"长鑫存储概念","code":"000129.KP","amount":11516014661,"count":10,"limitCount":101,"kplLimitCount":9},
+    "20260519":{"name":"商业航天","code":"000226.KP","amount":33717659326,"count":11,"limitCount":122,"kplLimitCount":9},
+    "20260520":{"name":"长鑫存储概念","code":"000129.KP","amount":40048480966,"count":6,"limitCount":69,"kplLimitCount":6},
+    "20260521":{"name":"长江存储概念","code":"000393.KP","amount":832496466,"count":1,"limitCount":35,"kplLimitCount":1},
+    "20260522":{"name":"AI硬件","code":"000025.KP","amount":79176870327,"count":31,"limitCount":136,"kplLimitCount":30},
+    "20260525":{"name":"AI硬件","code":"000025.KP","amount":60737230207,"count":15,"limitCount":103,"kplLimitCount":15},
+    "20260526":{"name":"AI硬件","code":"000025.KP","amount":29658383589,"count":9,"limitCount":64,"kplLimitCount":9},
+    "20260527":{"name":"待补充","pending":true},
+    "20260528":{"name":"AI硬件","code":"000025.KP","amount":51224558319,"count":15,"limitCount":125,"kplLimitCount":15},
+    "20260529":{"name":"电力","code":"000229.KP","amount":16574299820,"count":7,"limitCount":67,"kplLimitCount":7},
+    "20260601":{"name":"AI硬件","code":"000025.KP","amount":14823366465,"count":9,"limitCount":164,"kplLimitCount":9},
+    "20260602":{"name":"AI硬件","code":"000025.KP","amount":70218167804,"count":11,"limitCount":94,"kplLimitCount":11},
+    "20260603":{"name":"AI硬件","code":"000025.KP","amount":25076314604,"count":8,"limitCount":81,"kplLimitCount":8},
+    "20260604":{"name":"AI硬件","code":"000025.KP","amount":54080206151,"count":17,"limitCount":90,"kplLimitCount":17}
+  }
+};
+
+const themeBg={
+  "AI硬件":"rgba(90,201,166,.105)",
+  "商业航天":"rgba(131,181,233,.09)",
+  "电力":"rgba(191,184,92,.085)",
+  "国产芯片概念":"rgba(241,153,120,.09)",
+  "长鑫存储概念":"rgba(232,74,74,.09)",
+  "长江存储概念":"rgba(232,74,74,.075)",
+  "锂电池材料":"rgba(94,190,188,.085)",
+  "人形机器人":"rgba(174,137,231,.08)",
+  "新能源汽车":"rgba(191,184,92,.085)",
+  "韬（τ）定律概念":"rgba(241,153,120,.09)",
+  "储能":"rgba(94,190,188,.085)"
+};
+const themePalette=[
+  "rgba(131,181,233,.07)","rgba(90,201,166,.07)","rgba(241,153,120,.07)",
+  "rgba(174,137,231,.07)","rgba(94,190,188,.07)","rgba(232,74,74,.06)"
+];
+const themeColor=name=>themeBg[name]||themePalette[[...name].reduce((s,c)=>s+c.charCodeAt(0),0)%themePalette.length];
+const fmtAmt=v=>v==null?"待补充":`${(v/1e8).toFixed(1)}亿`;
+const themeShort=name=>name.length>7?`${name.slice(0,7)}…`:name;
+const modeLabel=m=>m==="count"?"涨停数量口径":"涨停成交额口径";
+const latestDate=tradingDays[tradingDays.length-1];
+const tnbSegments=[
+  ["红星发展","600367.SH",8,6],
+  ["金时科技","002951.SZ",9,5],
+  ["太极实业","600667.SH",3,2],
+  ["华锋股份","002806.SZ",6,4],
+  ["新炬网络","605398.SH",4,2]
+].map(([name,code,tDays,nBoards],i)=>{
+  const endIdx=dayIndex[latestDate];
+  const start=tradingDays[Math.max(0,endIdx-tDays+1)];
+  return {
+    id:`tnb-${i+1}`,name:`${name} · ${tDays}天${nBoards}板`,rawName:name,code,start,end:latestDate,
+    maxBoards:nBoards,tDays,days:tDays,isST:false,isTnb:true
+  };
+}).filter(s=>s.tDays>s.maxBoards);
+const latestCoreThemeStocks={
+  "000229.KP":[
+    {name:"华能蒙电",code:"600863.SH",amount:4214506686,pctChg:9.94,start:"",end:""},
+    {name:"华能国际",code:"600011.SH",amount:3878787080,pctChg:10.05,start:"",end:""},
+    {name:"远东股份",code:"600869.SH",amount:3146831886,pctChg:10,start:"",end:""},
+    {name:"晋控电力",code:"000767.SZ",amount:2021621406,pctChg:10.06,start:"",end:""},
+    {name:"华电能源",code:"600726.SH",amount:1694746128,pctChg:9.99,start:"",end:""},
+    {name:"粤电力A",code:"000539.SZ",amount:1024388057,pctChg:10.04,start:"",end:""},
+    {name:"广安爱众",code:"600979.SH",amount:593418577,pctChg:9.96,start:"",end:""}
+  ],
+  "000394.KP":[
+    {name:"长电科技",code:"600584.SH",amount:28784651037,pctChg:10,start:"",end:""},
+    {name:"华天科技",code:"002185.SZ",amount:11243290577,pctChg:10.02,start:"",end:""}
+  ],
+  "000025.KP":[
+    {name:"京东方A",code:"000725.SZ",amount:19950265964,pctChg:10.0179,start:"",end:""},
+    {name:"通鼎互联",code:"002491.SZ",amount:5789024620,pctChg:10.0041,start:"",end:""},
+    {name:"振华科技",code:"000733.SZ",amount:4383450946,pctChg:9.9963,start:"",end:""},
+    {name:"杰瑞股份",code:"002353.SZ",amount:3805968803,pctChg:9.9972,start:"",end:""},
+    {name:"江海股份",code:"002484.SZ",amount:3434209478,pctChg:10.0011,start:"",end:""},
+    {name:"红星发展",code:"600367.SH",amount:3226590914,pctChg:9.9977,start:"",end:""},
+    {name:"鑫科材料",code:"600255.SH",amount:2959451119,pctChg:10.0228,start:"",end:""},
+    {name:"世运电路",code:"603920.SH",amount:2158910978,pctChg:10.0018,start:"",end:""},
+    {name:"宏达电子",code:"300726.SZ",amount:2058301827,pctChg:20,start:"",end:""},
+    {name:"亨通股份",code:"600226.SH",amount:1582486708,pctChg:10,start:"",end:""},
+    {name:"旭光电子",code:"600353.SH",amount:1308387875,pctChg:9.9834,start:"",end:""},
+    {name:"双星新材",code:"002585.SZ",amount:854372372,pctChg:9.972,start:"",end:""},
+    {name:"雄韬股份",code:"002733.SZ",amount:732245802,pctChg:10,start:"",end:""},
+    {name:"金时科技",code:"002951.SZ",amount:684438138,pctChg:9.9823,start:"",end:""},
+    {name:"长源东谷",code:"603950.SH",amount:661381415,pctChg:10.0031,start:"",end:""},
+    {name:"联德股份",code:"605060.SH",amount:350341302,pctChg:10.0063,start:"",end:""},
+    {name:"祥和实业",code:"603500.SH",amount:140377890,pctChg:9.9901,start:"",end:""}
+  ]
+};
+const breadthValues = [5,5,4,2,4,2,3,3,2,4,6,3,5,7,7,6,5,4,5,5,7,2,4,2,4,3,4,4,3,2,5,4];
+const dataLogic = {
+  breadth: "limit_step(start_date=20260417,end_date=20260604,nums=3..11) -> filter name not contains ST and nums>=3 -> group by trade_date count",
+  cycles: "limit_step(20260304..20260604) computes B peak/trough; theme API aggregates active themes per cycle",
+  current: "limit_step(trade_date=20260604,nums>=3) selects current 3-board-plus stocks; daily computes 20260602..20260604 amount trend; limit_list_ths calibrates status/open metrics",
+  theme: "kpl_concept is unavailable on 20260604; kpl_concept_cons(trade_date=20260604) intersects limit_list_ths -> AI硬件 by limit-up count, joins daily amount"
+};
+const latestStatusMap={
+  "000725.SZ":"首板","002491.SZ":"首板","000733.SZ":"首板","002353.SZ":"首板",
+  "002484.SZ":"首板","600367.SH":"8天6板","600255.SH":"3天3板","603920.SH":"首板",
+  "300726.SZ":"首板","600226.SH":"首板","600353.SH":"首板","002585.SZ":"首板",
+  "002733.SZ":"首板","002951.SZ":"9天5板","603950.SH":"首板","605060.SH":"首板",
+  "603500.SH":"首板"
+};
+
+const svgEl=document.getElementById("timeline");
+const breadthEl=document.getElementById("breadthChart");
+const insightEl=document.getElementById("date-insight");
+const coreTitleEl=document.getElementById("core-title");
+const coreSummaryEl=document.getElementById("core-summary");
+const coreStatsEl=document.getElementById("core-stats");
+const coreRowsEl=document.getElementById("core-rows");
+let activeFilters=new Set(["nonst","three"]),currentThemeMode="count",currentSort="time",currentTnbMode="show",selectedDate=null;
+
+function el(tag,attrs,parent=svgEl){
+  const n=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(const[k,v]of Object.entries(attrs))n.setAttribute(k,v);
+  parent.appendChild(n);return n;
+}
+function matchesFilters(s){
+  const isST=!!s.isST;
+  if(activeFilters.has("st")&&!isST)return false;
+  if(activeFilters.has("nonst")&&isST)return false;
+  if(activeFilters.has("two")&&s.maxBoards<2)return false;
+  if(activeFilters.has("three")&&s.maxBoards<3)return false;
+  if(activeFilters.has("four")&&s.maxBoards<4)return false;
+  if(activeFilters.has("high")&&s.maxBoards<7)return false;
+  return true;
+}
+function filteredSegs(){
+  const base=segments.filter(matchesFilters);
+  const tnb=currentTnbMode==="show"
+    ?tnbSegments.filter(s=>{
+      if(activeFilters.has("st"))return false;
+      return s.tDays>s.maxBoards&&matchesFilters(s);
+    })
+    :[];
+  const list=[...base,...tnb];
+  return [...list].sort((a,b)=>{
+    if(currentSort==="time"){
+      return dayIndex[b.start]-dayIndex[a.start] || b.maxBoards-a.maxBoards || a.name.localeCompare(b.name,"zh-CN");
+    }
+    return b.maxBoards-a.maxBoards || dayIndex[a.start]-dayIndex[b.start] || a.name.localeCompare(b.name,"zh-CN");
+  });
+}
+function stockStatus(s){
+  if(latestStatusMap[s.code])return{text:latestStatusMap[s.code],cls:latestStatusMap[s.code]==="首板"?"":"watch"};
+  if(s.end===latestDate)return{text:"连板中",cls:"watch"};
+  if(s.start)return{text:`曾入周期 ${fmt(s.start)} → ${fmt(s.end)}`,cls:""};
+  return{text:"低位未入3板周期",cls:"watch"};
+}
+function syncFilterButtons(){
+  document.querySelectorAll("button[data-filter]").forEach(b=>{
+    const f=b.dataset.filter;
+    b.classList.toggle("active",f==="all"?activeFilters.size===0:activeFilters.has(f));
+  });
+}
+function setFilter(f){
+  if(f==="all"){
+    activeFilters.clear();
+  }else if(activeFilters.has(f)){
+    activeFilters.delete(f);
+  }else{
+    if(f==="st")activeFilters.delete("nonst");
+    if(f==="nonst")activeFilters.delete("st");
+    if(["two","three","four","high"].includes(f)){
+      ["two","three","four","high"].forEach(x=>activeFilters.delete(x));
+    }
+    activeFilters.add(f);
+  }
+  syncFilterButtons();
+}
+
+function renderCorePool(){
+  const theme=dailyThemeModes[currentThemeMode][latestDate];
+  const stocks=latestCoreThemeStocks[theme?.code]||[];
+  const total=stocks.reduce((s,x)=>s+x.amount,0);
+  const cy=stocks.filter(s=>s.start).length;
+  coreTitleEl.textContent=`${fmt(latestDate)} 核心题材：${theme?.name||"待补充"}`;
+  coreSummaryEl.textContent=stocks.length
+    ?`${modeLabel(currentThemeMode)}；优先看成交额靠前、尚未进入3板周期的低位补涨，以及曾经进入周期的辨识度标的。`
+    :theme?.pending
+      ?`开盘啦题材尚未同步，等待接口更新后补充题材与核心股池。`
+      :"暂无可展示数据。";
+  coreStatsEl.innerHTML=stocks.length?`
+    <span class="core-stat"><strong>${stocks.length}</strong>只涨停</span>
+    <span class="core-stat"><strong>${fmtAmt(total)}</strong>合计成交额</span>
+    <span class="core-stat"><strong>${stocks.length-cy}</strong>只低位观察</span>
+    <span class="core-stat"><strong>${cy}</strong>只曾入周期</span>`:"";
+  coreRowsEl.innerHTML="";
+  stocks.forEach((s,i)=>{
+    const st=stockStatus(s);
+    const tr=document.createElement("tr");
+    const rank=document.createElement("td");rank.innerHTML=`<span class="rank-badge">${i+1}</span>`;tr.appendChild(rank);
+    const name=document.createElement("td");name.innerHTML=`<span class="stock-name">${s.name}</span>`;tr.appendChild(name);
+    const code=document.createElement("td");code.textContent=s.code;code.style.cssText="font-family:var(--mono);font-size:11px;color:#8d97aa";tr.appendChild(code);
+    const amt=document.createElement("td");amt.className="money-cell";amt.textContent=fmtAmt(s.amount);tr.appendChild(amt);
+    const pct=document.createElement("td");pct.className="pct-cell";pct.textContent=`${s.pctChg.toFixed(2)}%`;tr.appendChild(pct);
+    const stCell=document.createElement("td");stCell.innerHTML=`<span class="status-pill ${st.cls}">${st.text}</span>`;tr.appendChild(stCell);
+    coreRowsEl.appendChild(tr);
+  });
+}
+
+function renderInsight(list){
+  if(!selectedDate){insightEl.textContent="未选择日期 — 点击图表任意列";return;}
+  const starters=list.filter(s=>!s.isTnb&&s.start===selectedDate);
+  const theme=dailyThemeModes[currentThemeMode][selectedDate];
+  const thText=theme?.amount
+    ?`${modeLabel(currentThemeMode)}：<span class="tk">${theme.name} · ${fmtAmt(theme.amount)} · ${theme.count}只 / 开盘啦${theme.kplLimitCount}只</span>`
+    :theme?.pending
+      ?`${modeLabel(currentThemeMode)}：<span class="tk pend">开盘啦题材尚未同步</span>`
+      :`${modeLabel(currentThemeMode)}：<span class="tk pend">${theme?.name||"待补充"} · 数据待补充</span>`;
+  const starterHtml=starters.length
+    ?starters.map(s=>`<span class="tk">${s.name} ${s.code} · ${s.maxBoards}板</span>`).join("")
+    :"当前筛选下无股票";
+  insightEl.innerHTML=`<strong>${fmt(selectedDate)}</strong> &nbsp;${thText}<br>首板启动：${starterHtml}`;
+}
+
+function renderBreadthChart(){
+  const W=1320,H=270,left=172,right=42,top=16,bottom=42;
+  const values=breadthValues;
+  const ma3=values.map((_,i)=>{
+    const start=Math.max(0,i-2);
+    const arr=values.slice(start,i+1);
+    return arr.reduce((s,v)=>s+v,0)/arr.length;
+  });
+  const maxY=Math.max(8,Math.ceil(Math.max(...values,...ma3)));
+  const plotW=W-left-right,plotH=H-top-bottom;
+  const xStep=plotW/(tradingDays.length-1);
+  const x=i=>left+i*xStep;
+  const y=v=>top+plotH-(v/maxY)*plotH;
+  const barColorByB=b=>b>=6?"#c74745":b>=4?"#d0912e":b>=2?"#3f78b7":"#5b7f31";
+
+  breadthEl.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  breadthEl.setAttribute("width",W);
+  breadthEl.setAttribute("height",H);
+  breadthEl.innerHTML="";
+  el("rect",{x:0,y:0,width:W,height:H,fill:"#191918"},breadthEl);
+  for(let t=0;t<=maxY;t++){
+    const yy=y(t);
+    el("line",{x1:left,x2:W-right,y1:yy,y2:yy,stroke:t===0?"#4a4a44":"#33332f","stroke-width":1},breadthEl);
+    if(t%1===0)el("text",{x:left-12,y:yy+4,fill:"#a5a29a","font-size":12,"font-family":"DM Mono, monospace","text-anchor":"end"},breadthEl).textContent=t;
+  }
+  tradingDays.forEach((d,i)=>{
+    const xi=x(i);
+    const bw=Math.min(18,xStep*.45);
+    el("line",{x1:xi,x2:xi,y1:top,y2:top+plotH,stroke:"#2d2d29","stroke-width":1},breadthEl);
+    el("rect",{x:xi-bw/2,y:y(values[i]),width:bw,height:Math.max(2,top+plotH-y(values[i])),rx:4,fill:barColorByB(values[i]),opacity:.95},breadthEl);
+    if(values[i]>0){
+      el("text",{x:xi,y:y(values[i])-6,fill:"#d8d5cb","font-size":11,"font-weight":800,"font-family":"DM Mono, monospace","text-anchor":"middle"},breadthEl).textContent=values[i];
+    }
+    if(["17","24","30","08","15","22"].some(s=>d.endsWith(s))||i===0||i===tradingDays.length-1){
+      el("text",{x:xi,y:H-16,fill:"#a5a29a","font-size":12,"font-family":"DM Mono, monospace","text-anchor":"middle"},breadthEl).textContent=`${d.slice(4,6)}/${d.slice(6)}`;
+    }
+  });
+  const path=ma3.map((v,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  el("path",{d:path,fill:"none",stroke:"#4998f4","stroke-width":2.5,"stroke-linecap":"round","stroke-linejoin":"round"},breadthEl);
+}
+
+function render(){
+  const list=filteredSegs();
+  const W=1320,left=172,right=42,top=90,rowH=28,bottom=28;
+  const H=top+list.length*rowH+bottom;
+  const barH=16;
+  const xStep=(W-left-right)/(tradingDays.length-1);
+  const x=d=>left+dayIndex[d]*xStep;
+  const nearestDate=sx=>tradingDays[Math.max(0,Math.min(tradingDays.length-1,Math.round((sx-left)/xStep)))];
+
+  svgEl.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svgEl.setAttribute("width",W);svgEl.setAttribute("height",H);
+  svgEl.innerHTML="";svgEl.style.cursor="crosshair";
+
+  const activeThemes=dailyThemeModes[currentThemeMode];
+
+  // chart background
+  el("rect",{x:0,y:0,width:W,height:H,fill:"#1c1c1a"});
+
+  // theme labels
+  tradingDays.forEach(d=>{
+    const theme=activeThemes[d];
+    const hasTheme=theme?.name&&theme.name!=="待补充";
+    if(!hasTheme)return;
+    const xi=x(d)-xStep/2;
+    const tx=xi+xStep/2,ty=54;
+    const t=el("text",{
+      x:tx,y:ty,fill:"#b7b4aa","font-size":9.5,"font-weight":800,
+      "text-anchor":"middle","pointer-events":"none",
+      "font-family":"Noto Sans SC, sans-serif",
+      transform:`rotate(-38 ${tx} ${ty})`
+    });
+    t.textContent=themeShort(theme.name);
+    el("title",{},t).textContent=`${fmt(d)} 最强题材：${theme.name} · ${fmtAmt(theme.amount)}`;
+  });
+
+  // gridlines + date labels
+  tradingDays.forEach((d,i)=>{
+    const xi=x(d);
+    const isWk=["17","24","30","08","15","22"].some(s=>d.endsWith(s));
+    el("line",{x1:xi,x2:xi,y1:44,y2:H-bottom+6,stroke:isWk?"#30302c":"#282824","stroke-width":isWk?1:0.8});
+    el("text",{x:xi,y:26,fill:selectedDate===d?"#f2f0e8":"#9c9991","font-size":13.5,"font-weight":selectedDate===d?700:500,"text-anchor":"middle","pointer-events":"none","font-family":"DM Mono, monospace"}).textContent=`${d.slice(4,6)}/${d.slice(6)}`;
+  });
+
+  // selected date line
+  if(selectedDate){
+    const sx=x(selectedDate);
+    el("line",{x1:sx,x2:sx,y1:38,y2:H-bottom+8,stroke:"#5ac9a6","stroke-width":1.5,"stroke-dasharray":"4 4",opacity:0.9});
+    el("rect",{x:sx-24,y:5,width:48,height:20,rx:5,fill:"#5ac9a6"});
+    el("text",{x:sx,y:19,fill:"#0f1714","font-size":10.5,"font-weight":800,"text-anchor":"middle","font-family":"DM Mono, monospace"}).textContent=`${selectedDate.slice(4,6)}/${selectedDate.slice(6)}`;
+  }
+
+  // rows
+  list.forEach((s,i)=>{
+    const y=top+i*rowH;
+    el("line",{x1:0,x2:W,y1:y+14,y2:y+14,stroke:"#2a2a27","stroke-width":1});
+    if(selectedDate===s.start)el("rect",{x:0,y:y-14,width:W,height:rowH,fill:"rgba(232,74,74,.10)"});
+
+    // label
+    el("text",{x:left-10,y:y+6,fill:"#f0eee7","font-size":13,"font-family":"Noto Sans SC,sans-serif","font-weight":700,"text-anchor":"end"}).textContent=s.rawName||s.name;
+
+    // bar
+    const x1=x(s.start),x2=x(s.end);
+    const bc=s.isTnb?"#5ac9a6":barColor(s.maxBoards);
+    const width=Math.max(12,x2-x1);
+    const activeNow=s.end===latestDate;
+    el("rect",{x:x1,y:y-barH/2,width,height:barH,rx:4,
+      fill:s.isTnb?"rgba(90,201,166,.08)":s.isST?"rgba(255,255,255,.02)":bc,
+      "fill-opacity":s.isTnb?1:s.isST?1:0.96,
+      stroke:s.isST?bc:bc,
+      "stroke-width":s.isTnb||s.isST?2:0,
+      "stroke-dasharray":s.isTnb||s.isST?"5 4":"none"
+    });
+    if(activeNow){
+      el("rect",{x:x1+width-5,y:y-barH/2,width:5,height:barH,rx:2,fill:"#5ac9a6"});
+    }
+    el("text",{x:x1+width/2,y:y+5,fill:"#ffffff","font-size":12,"font-weight":800,"text-anchor":"middle","font-family":"Noto Sans SC, sans-serif"}).textContent=s.isTnb?`${s.tDays}天${s.maxBoards}板`:`${s.maxBoards}板`;
+  });
+
+  // axis
+  el("line",{x1:left,x2:W-right,y1:H-bottom+8,y2:H-bottom+8,stroke:"#30302c","stroke-width":1});
+  tradingDays.forEach(d=>{
+    const xi=x(d);
+    el("line",{x1:xi,x2:xi,y1:H-bottom+5,y2:H-bottom+11,stroke:"#3a3a35","stroke-width":1});
+  });
+
+  el("rect",{x:left-xStep/2,y:0,width:W-left-right+xStep,height:H,fill:"transparent","pointer-events":"all"});
+  svgEl.onclick=e=>{
+    const box=svgEl.getBoundingClientRect();
+    selectedDate=nearestDate((e.clientX-box.left)*(W/box.width));
+    render();
+  };
+  renderInsight(list);
+  renderCorePool();
+}
+
+document.querySelectorAll("button[data-filter]").forEach(b=>b.addEventListener("click",()=>{setFilter(b.dataset.filter);render();}));
+document.querySelectorAll("button[data-theme-mode]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("button[data-theme-mode]").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");currentThemeMode=b.dataset.themeMode;render();
+}));
+document.querySelectorAll("button[data-sort-mode]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("button[data-sort-mode]").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");currentSort=b.dataset.sortMode;render();
+}));
+document.querySelectorAll("button[data-tnb-mode]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("button[data-tnb-mode]").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");currentTnbMode=b.dataset.tnbMode;render();
+}));
+
+renderBreadthChart();
+render();
+</script>
+</body>
+</html>
